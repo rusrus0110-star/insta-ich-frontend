@@ -1,0 +1,18 @@
+:root {
+  --color-bg: #ffffff;
+  --color-bg-soft: #fafafa;
+  --color-border: #dbdbdb;
+  --color-border-dark: #c7c7c7;
+  --color-text: #262626;
+  --color-muted: #737373;
+  --color-primary: #0095f6;
+  --color-primary-hover: #1877f2;
+  --color-danger: #ed4956;
+  --color-success: #168821;
+
+  --sidebar-width: 245px;
+  --footer-height: 44px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
