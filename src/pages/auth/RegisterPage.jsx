@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
+import ichgra_logo from "../../assets/ichgra_logo.png";
+
 import ErrorMessage from "../../components/common/ErrorMessage.jsx";
+import AuthLayout from "../../components/layout/AuthLayout.jsx";
 import useAuth from "../../hooks/useAuth.js";
 
 function RegisterPage() {
@@ -48,33 +51,40 @@ function RegisterPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-logo">ICHgram</h1>
-        <p className="auth-subtitle">Create your account</p>
+    <AuthLayout hide_visual>
+      <div className="auth-card auth-card-register">
+        <img
+          src={ichgra_logo}
+          alt="ICHgram"
+          className="auth-logo-image auth-logo-register"
+        />
+
+        <p className="auth-register-subtitle">
+          Sign up to see photos and videos from your friends.
+        </p>
 
         <form className="auth-form" onSubmit={handle_submit}>
           <input
-            name="username"
-            type="text"
-            placeholder="Username"
-            value={form_data.username}
+            name="email"
+            type="email"
+            placeholder="Email"
+            value={form_data.email}
             onChange={handle_change}
           />
 
           <input
             name="full_name"
             type="text"
-            placeholder="Full name"
+            placeholder="Full Name"
             value={form_data.full_name}
             onChange={handle_change}
           />
 
           <input
-            name="email"
-            type="email"
-            placeholder="Email"
-            value={form_data.email}
+            name="username"
+            type="text"
+            placeholder="Username"
+            value={form_data.username}
             onChange={handle_change}
           />
 
@@ -85,6 +95,34 @@ function RegisterPage() {
             value={form_data.password}
             onChange={handle_change}
           />
+
+          <p className="auth-legal-text">
+            People who use our service may have uploaded your contact
+            information to ICHgram.
+            <a href="#" onClick={(event) => event.preventDefault()}>
+              {" "}
+              Learn More
+            </a>
+          </p>
+
+          <p className="auth-legal-text">
+            By signing up, you agree to our
+            <a href="#" onClick={(event) => event.preventDefault()}>
+              {" "}
+              Terms
+            </a>
+            ,
+            <a href="#" onClick={(event) => event.preventDefault()}>
+              {" "}
+              Privacy Policy
+            </a>{" "}
+            and
+            <a href="#" onClick={(event) => event.preventDefault()}>
+              {" "}
+              Cookies Policy
+            </a>
+            .
+          </p>
 
           <ErrorMessage message={error} />
 
@@ -98,7 +136,7 @@ function RegisterPage() {
         <span>Have an account?</span>
         <Link to="/login">Log in</Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
 

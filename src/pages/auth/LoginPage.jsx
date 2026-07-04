@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
+import ichgra_logo from "../../assets/ichgra_logo.png";
+
 import ErrorMessage from "../../components/common/ErrorMessage.jsx";
+import AuthLayout from "../../components/layout/AuthLayout.jsx";
 import useAuth from "../../hooks/useAuth.js";
 
 function LoginPage() {
@@ -46,16 +49,15 @@ function LoginPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1 className="auth-logo">ICHgram</h1>
-        <p className="auth-subtitle">Sign in to continue</p>
+    <AuthLayout>
+      <div className="auth-card auth-card-login">
+        <img src={ichgra_logo} alt="ICHgram" className="auth-logo-image" />
 
         <form className="auth-form" onSubmit={handle_submit}>
           <input
             name="email"
             type="email"
-            placeholder="Email"
+            placeholder="Username, or email"
             value={form_data.email}
             onChange={handle_change}
           />
@@ -68,23 +70,29 @@ function LoginPage() {
             onChange={handle_change}
           />
 
+          <button type="submit" disabled={is_submitting}>
+            {is_submitting ? "Logging in..." : "Log in"}
+          </button>
+
+          <div className="auth-divider">
+            <span />
+            <p>OR</p>
+            <span />
+          </div>
+
           <ErrorMessage message={error} />
 
-          <button type="submit" disabled={is_submitting}>
-            {is_submitting ? "Signing in..." : "Log in"}
-          </button>
+          <Link className="auth-link" to="/reset-password">
+            Forgot password?
+          </Link>
         </form>
-
-        <Link className="auth-link" to="/reset-password">
-          Forgot password?
-        </Link>
       </div>
 
       <div className="auth-switch-card">
         <span>Don&apos;t have an account?</span>
         <Link to="/register">Sign up</Link>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
 
