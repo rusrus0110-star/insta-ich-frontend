@@ -7,7 +7,7 @@ import ErrorMessage from "../../components/common/ErrorMessage.jsx";
 import AuthLayout from "../../components/layout/AuthLayout.jsx";
 
 function ResetPasswordPage() {
-  const [email, set_email] = useState("");
+  const [login_identifier, set_login_identifier] = useState("");
   const [success_message, set_success_message] = useState("");
   const [error, set_error] = useState("");
   const [is_submitting, set_is_submitting] = useState(false);
@@ -20,14 +20,17 @@ function ResetPasswordPage() {
     set_is_submitting(true);
 
     try {
-      const data = await forgot_password({ email });
+      await forgot_password({
+        login_identifier,
+      });
 
       set_success_message(
-        data.message ||
-          "If this account exists, reset instructions have been generated.",
+        "Password reset instructions were sent to your email.",
       );
     } catch (err) {
-      set_error(err.response?.data?.message || "Could not reset password");
+      set_error(
+        err.response?.data?.message || "Could not send reset instructions",
+      );
     } finally {
       set_is_submitting(false);
     }
@@ -43,16 +46,16 @@ function ResetPasswordPage() {
         <h1 className="reset-title">Trouble logging in?</h1>
 
         <p className="reset-description">
-          Enter your email, phone, or username and we&apos;ll send you a link to
-          get back into your account.
+          Enter your email or username and we&apos;ll send you a link to get
+          back into your account.
         </p>
 
         <form className="auth-form reset-form" onSubmit={handle_submit}>
           <input
             type="text"
             placeholder="Email or username"
-            value={email}
-            onChange={(event) => set_email(event.target.value)}
+            value={login_identifier}
+            onChange={(event) => set_login_identifier(event.target.value)}
           />
 
           <button type="submit" disabled={is_submitting}>
