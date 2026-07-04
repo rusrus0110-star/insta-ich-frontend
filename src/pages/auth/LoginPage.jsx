@@ -12,7 +12,7 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const [form_data, set_form_data] = useState({
-    email: "",
+    login_identifier: "",
     password: "",
   });
 
@@ -55,10 +55,10 @@ function LoginPage() {
 
         <form className="auth-form" onSubmit={handle_submit}>
           <input
-            name="email"
-            type="email"
+            name="login_identifier"
+            type="text"
             placeholder="Username, or email"
-            value={form_data.email}
+            value={form_data.login_identifier}
             onChange={handle_change}
           />
 
