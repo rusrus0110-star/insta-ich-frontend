@@ -1,62 +1,31 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { LockKeyhole } from "lucide-react";
 
-import { forgot_password, reset_password } from "../../api/auth_api.js";
+import { forgot_password } from "../../api/auth_api.js";
 import ErrorMessage from "../../components/common/ErrorMessage.jsx";
+import AuthLayout from "../../components/layout/AuthLayout.jsx";
 
 function ResetPasswordPage() {
   const [email, set_email] = useState("");
-  const [reset_token, set_reset_token] = useState("");
-  const [new_password, set_new_password] = useState("");
-  const [generated_token, set_generated_token] = useState("");
   const [success_message, set_success_message] = useState("");
   const [error, set_error] = useState("");
   const [is_submitting, set_is_submitting] = useState(false);
 
-  const handle_forgot_password = async (event) => {
+  const handle_submit = async (event) => {
     event.preventDefault();
 
     set_error("");
     set_success_message("");
-    set_generated_token("");
     set_is_submitting(true);
 
     try {
       const data = await forgot_password({ email });
 
-      set_success_message(data.message);
-
-      if (data.reset_token) {
-        set_generated_token(data.reset_token);
-        set_reset_token(data.reset_token);
-      }
-    } catch (err) {
-      set_error(
-        err.response?.data?.message || "Could not generate reset token",
-      );
-    } finally {
-      set_is_submitting(false);
-    }
-  };
-
-  const handle_reset_password = async (event) => {
-    event.preventDefault();
-
-    set_error("");
-    set_success_message("");
-    set_is_submitting(true);
-
-    try {
-      await reset_password({
-        reset_token,
-        new_password,
-      });
-
       set_success_message(
-        "Password was changed successfully. You can now log in.",
+        data.message ||
+          "If this account exists, reset instructions have been generated.",
       );
-      set_reset_token("");
-      set_new_password("");
     } catch (err) {
       set_error(err.response?.data?.message || "Could not reset password");
     } finally {
@@ -65,65 +34,55 @@ function ResetPasswordPage() {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card auth-card-wide">
-        <h1 className="auth-logo">ICHgram</h1>
-        <p className="auth-subtitle">Reset password</p>
+    <AuthLayout hide_visual>
+      <div className="auth-card auth-card-reset">
+        <div className="reset-icon">
+          <LockKeyhole size={38} strokeWidth={1.7} />
+        </div>
 
-        <form className="auth-form" onSubmit={handle_forgot_password}>
+        <h1 className="reset-title">Trouble logging in?</h1>
+
+        <p className="reset-description">
+          Enter your email, phone, or username and we&apos;ll send you a link to
+          get back into your account.
+        </p>
+
+        <form className="auth-form reset-form" onSubmit={handle_submit}>
           <input
-            type="email"
-            placeholder="Email"
+            type="text"
+            placeholder="Email or username"
             value={email}
             onChange={(event) => set_email(event.target.value)}
           />
 
           <button type="submit" disabled={is_submitting}>
-            {is_submitting ? "Generating..." : "Generate reset token"}
+            {is_submitting ? "Sending..." : "Reset your password"}
           </button>
-        </form>
-
-        {generated_token && (
-          <div className="reset-token-box">
-            <strong>Demo reset token:</strong>
-            <p>{generated_token}</p>
-          </div>
-        )}
-
-        <form
-          className="auth-form auth-form-spaced"
-          onSubmit={handle_reset_password}
-        >
-          <input
-            type="text"
-            placeholder="Reset token"
-            value={reset_token}
-            onChange={(event) => set_reset_token(event.target.value)}
-          />
-
-          <input
-            type="password"
-            placeholder="New password"
-            value={new_password}
-            onChange={(event) => set_new_password(event.target.value)}
-          />
 
           <ErrorMessage message={error} />
 
           {success_message && (
-            <div className="success-message">{success_message}</div>
+            <div className="success-message reset-success">
+              {success_message}
+            </div>
           )}
-
-          <button type="submit" disabled={is_submitting}>
-            {is_submitting ? "Saving..." : "Set new password"}
-          </button>
         </form>
 
-        <Link className="auth-link" to="/login">
-          Back to login
+        <div className="auth-divider reset-divider">
+          <span />
+          <p>OR</p>
+          <span />
+        </div>
+
+        <Link className="reset-create-link" to="/register">
+          Create new account
         </Link>
       </div>
-    </div>
+
+      <Link className="reset-back-card" to="/login">
+        Back to login
+      </Link>
+    </AuthLayout>
   );
 }
 
