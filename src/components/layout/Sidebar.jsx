@@ -1,78 +1,99 @@
 import {
-  Bell,
+  CirclePlus,
   Compass,
+  Heart,
   Home,
-  LogOut,
   MessageCircle,
-  PlusSquare,
   Search,
   User,
 } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
+import ichgra_logo from "../../assets/ichgra_logo.png";
 import useAuth from "../../hooks/useAuth.js";
 
 function Sidebar() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handle_logout = () => {
-    logout();
-    navigate("/login");
-  };
+  const nav_items = [
+    {
+      label: "Home",
+      to: "/feed",
+      icon: Home,
+    },
+    {
+      label: "Search",
+      to: "/search",
+      icon: Search,
+    },
+    {
+      label: "Explore",
+      to: "/explore",
+      icon: Compass,
+    },
+    {
+      label: "Messages",
+      to: "/messages",
+      icon: MessageCircle,
+    },
+    {
+      label: "Notifications",
+      to: "/notifications",
+      icon: Heart,
+    },
+    {
+      label: "Create",
+      to: "/create-post",
+      icon: CirclePlus,
+    },
+  ];
 
   return (
     <aside className="sidebar">
-      <div className="sidebar-logo">ICHgram</div>
-
-      <nav className="sidebar-nav">
-        <NavLink to="/feed" className="sidebar-link">
-          <Home size={22} />
-          <span>Home</span>
+      <div className="sidebar-inner">
+        <NavLink to="/feed" className="sidebar-logo-link">
+          <img src={ichgra_logo} alt="ICHgram" className="sidebar-logo" />
         </NavLink>
 
-        <NavLink to="/search" className="sidebar-link">
-          <Search size={22} />
-          <span>Search</span>
-        </NavLink>
+        <nav className="sidebar-nav">
+          {nav_items.map((item) => {
+            const Icon = item.icon;
 
-        <NavLink to="/explore" className="sidebar-link">
-          <Compass size={22} />
-          <span>Explore</span>
-        </NavLink>
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  isActive ? "sidebar-link sidebar-link-active" : "sidebar-link"
+                }
+              >
+                <Icon size={20} strokeWidth={1.8} />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
 
-        <NavLink to="/messages" className="sidebar-link">
-          <MessageCircle size={22} />
-          <span>Messages</span>
-        </NavLink>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            isActive
+              ? "sidebar-link sidebar-link-active sidebar-profile"
+              : "sidebar-link sidebar-profile"
+          }
+        >
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.username}
+              className="sidebar-profile-avatar"
+            />
+          ) : (
+            <User size={20} strokeWidth={1.8} />
+          )}
 
-        <NavLink to="/notifications" className="sidebar-link">
-          <Bell size={22} />
-          <span>Notifications</span>
-        </NavLink>
-
-        <NavLink to="/create-post" className="sidebar-link">
-          <PlusSquare size={22} />
-          <span>Create</span>
-        </NavLink>
-
-        <NavLink to="/profile" className="sidebar-link">
-          <User size={22} />
           <span>Profile</span>
         </NavLink>
-      </nav>
-
-      <div className="sidebar-user">
-        <div className="sidebar-user-name">{user?.username || "user"}</div>
-
-        <button
-          type="button"
-          className="sidebar-logout"
-          onClick={handle_logout}
-        >
-          <LogOut size={20} />
-          <span>Logout</span>
-        </button>
       </div>
     </aside>
   );
