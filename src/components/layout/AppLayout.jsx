@@ -1,14 +1,15 @@
-import Sidebar from "./Sidebar.jsx";
 import Footer from "./Footer.jsx";
+import Sidebar from "./Sidebar.jsx";
 
 function AppLayout({ children }) {
   return (
     <div className="app-layout">
       <Sidebar />
 
-      <main className="app-main">{children}</main>
-
-      <Footer />
+      <div className="app-main">
+        {children}
+        <Footer />
+      </div>
     </div>
   );
 }
