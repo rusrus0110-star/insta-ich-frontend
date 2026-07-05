@@ -1,140 +1,84 @@
-import { useEffect, useState } from "react";
+import FeedPage from "../feed/FeedPage.jsx";
+import postThumbnail from "../../assets/post-trees.png";
 
-import {
-  get_notifications,
-  mark_all_notifications_as_read,
-} from "../../api/notifications_api.js";
+const mockNotifications = [
+  {
+    id: 1,
+    username: "sashaa",
+    firstLine: "liked your",
+    secondLine: "photo.",
+    time: "2 d",
+    image: postThumbnail,
+  },
+  {
+    id: 2,
+    username: "sashaa",
+    firstLine: "commented",
+    secondLine: "your photo.",
+    time: "2 wek",
+    image: postThumbnail,
+  },
+  {
+    id: 3,
+    username: "sashaa",
+    firstLine: "started",
+    secondLine: "following.",
+    time: "2 d",
+    image: postThumbnail,
+  },
+];
 
-import Avatar from "../../components/common/Avatar.jsx";
-import ErrorMessage from "../../components/common/ErrorMessage.jsx";
+function NotificationAvatar({ username }) {
+  const firstLetter = username?.charAt(0).toUpperCase() || "U";
 
-function NotificationsPage() {
-  const [notifications, set_notifications] = useState([]);
-  const [error, set_error] = useState("");
-  const [is_loading, set_is_loading] = useState(true);
+  return <div className="notification-avatar">{firstLetter}</div>;
+}
 
-  useEffect(() => {
-    let is_mounted = true;
-
-    const load_initial_notifications = async () => {
-      try {
-        const data = await get_notifications();
-
-        if (is_mounted) {
-          set_notifications(data.notifications || []);
-          set_error("");
-        }
-      } catch (err) {
-        if (is_mounted) {
-          set_error(
-            err.response?.data?.message || "Could not load notifications",
-          );
-        }
-      } finally {
-        if (is_mounted) {
-          set_is_loading(false);
-        }
-      }
-    };
-
-    load_initial_notifications();
-
-    return () => {
-      is_mounted = false;
-    };
-  }, []);
-
-  const reload_notifications = async () => {
-    try {
-      set_error("");
-      set_is_loading(true);
-
-      const data = await get_notifications();
-
-      set_notifications(data.notifications || []);
-    } catch (err) {
-      set_error(err.response?.data?.message || "Could not load notifications");
-    } finally {
-      set_is_loading(false);
-    }
-  };
-
-  const handle_mark_all = async () => {
-    try {
-      await mark_all_notifications_as_read();
-      await reload_notifications();
-    } catch (err) {
-      set_error(
-        err.response?.data?.message || "Could not update notifications",
-      );
-    }
-  };
-
-  const get_notification_text = (notification) => {
-    const username = notification.sender?.username || "Someone";
-
-    if (notification.type === "follow") {
-      return `${username} started following you.`;
-    }
-
-    if (notification.type === "like") {
-      return `${username} liked your post.`;
-    }
-
-    if (notification.type === "comment") {
-      return `${username} commented on your post.`;
-    }
-
-    return `${username} sent you a notification.`;
-  };
-
+function NotificationItem({ notification }) {
   return (
-    <section className="main-page main-panel-page">
-      <div className="side-panel">
-        <div className="panel-header">
-          <h1>Notifications</h1>
+    <article className="notification-row">
+      <NotificationAvatar username={notification.username} />
 
-          <button type="button" onClick={handle_mark_all}>
-            Read all
-          </button>
-        </div>
-
-        <ErrorMessage message={error} />
-
-        <div className="panel-list">
-          {is_loading && <p className="panel-muted">Loading...</p>}
-
-          {!is_loading && notifications.length === 0 && (
-            <p className="panel-muted">No notifications yet</p>
-          )}
-
-          {notifications.map((notification) => (
-            <div
-              className={
-                notification.is_read
-                  ? "notification-item"
-                  : "notification-item notification-item-unread"
-              }
-              key={notification.id || notification._id}
-            >
-              <Avatar
-                src={notification.sender?.avatar}
-                username={notification.sender?.username}
-                size={42}
-              />
-
-              <div>
-                <p>{get_notification_text(notification)}</p>
-                <span>
-                  {new Date(notification.created_at).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="notification-text">
+        <p>
+          <span>{notification.username}</span> {notification.firstLine}
+          <br />
+          {notification.secondLine} <small>{notification.time}</small>
+        </p>
       </div>
 
-      <div className="main-overlay-preview" />
+      <img src={notification.image} alt="" className="notification-thumbnail" />
+    </article>
+  );
+}
+
+function NotificationsPage() {
+  return (
+    <section className="notification-page">
+      <div className="notification-feed-background">
+        <FeedPage />
+      </div>
+
+      <div className="notification-layer">
+        <aside className="notification-panel">
+          <h1>Notifications</h1>
+
+          <div className="notification-section">
+            <h2>New</h2>
+
+            <div className="notification-list">
+              {mockNotifications.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                />
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <div className="notification-overlay" />
+      </div>
     </section>
   );
 }
