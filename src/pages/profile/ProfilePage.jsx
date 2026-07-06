@@ -32,8 +32,8 @@ const profiles = {
       "Building clean data flows between websites, APIs and CRM systems.",
       "Node.js · Express · MongoDB · HubSpot API · OpenAI",
     ],
-    website: "linkedin.com/in/ruslan-c-17311460",
-    websiteUrl: "https://www.linkedin.com/in/ruslan-c-17311460",
+    website: "linkedin.com/in/ruslanchyhryn",
+    websiteUrl: "https://www.linkedin.com/in/ruslanchyhryn",
     posts: [
       {
         id: "ruslan-post-1",
@@ -168,10 +168,11 @@ function ProfileBio({ profile }) {
   );
 }
 
-function ProfilePage() {
+function ProfilePage({ forcedUsername }) {
   const { username } = useParams();
 
-  const profile = profiles[username] || profiles.ruslan;
+  const activeUsername = forcedUsername || username;
+  const profile = profiles[activeUsername] || profiles.ruslan;
 
   return (
     <main className="profile-page">
