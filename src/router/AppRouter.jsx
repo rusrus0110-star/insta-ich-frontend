@@ -14,6 +14,7 @@ import SearchPage from "../pages/search/SearchPage.jsx";
 import NotificationsPage from "../pages/notifications/NotificationsPage.jsx";
 
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
+import ProfilePage from "../pages/profile/ProfilePage.jsx";
 
 function AppRouter() {
   return (
@@ -24,6 +25,16 @@ function AppRouter() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/set-new-password" element={<SetNewPasswordPage />} />
+      <Route
+        path="/profile/:username"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <ProfilePage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/feed"
