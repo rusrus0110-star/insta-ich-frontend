@@ -15,6 +15,10 @@ import useAuth from "../../hooks/useAuth.js";
 function Sidebar() {
   const { user } = useAuth();
 
+  const profile_link = user?.username
+    ? `/profile/${user.username}`
+    : "/profile/ruslan";
+
   const nav_items = [
     {
       label: "Home",
@@ -75,7 +79,7 @@ function Sidebar() {
         </nav>
 
         <NavLink
-          to="/profile"
+          to={profile_link}
           className={({ isActive }) =>
             isActive
               ? "sidebar-link sidebar-link-active sidebar-profile"
