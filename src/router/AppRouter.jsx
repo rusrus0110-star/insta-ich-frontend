@@ -15,7 +15,7 @@ import NotificationsPage from "../pages/notifications/NotificationsPage.jsx";
 
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
 import ProfilePage from "../pages/profile/ProfilePage.jsx";
-
+import PostPage from "../pages/post/PostPage.jsx";
 function AppRouter() {
   return (
     <Routes>
@@ -75,6 +75,16 @@ function AppRouter() {
           <ProtectedRoute>
             <AppLayout>
               <NotificationsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/posts/:postId"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <PostPage />
             </AppLayout>
           </ProtectedRoute>
         }
