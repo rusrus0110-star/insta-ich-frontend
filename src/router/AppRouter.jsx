@@ -18,6 +18,7 @@ import ProfilePage from "../pages/profile/ProfilePage.jsx";
 import PostPage from "../pages/post/PostPage.jsx";
 import EditProfilePage from "../pages/profile/EditProfilePage.jsx";
 import CreatePostPage from "../pages/create_post/CreatePostPage.jsx";
+import MessagesPage from "../pages/messages/MessagesPage.jsx";
 
 function AppRouter() {
   return (
@@ -108,6 +109,16 @@ function AppRouter() {
           <ProtectedRoute>
             <AppLayout>
               <CreatePostPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <MessagesPage />
             </AppLayout>
           </ProtectedRoute>
         }
