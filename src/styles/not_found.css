@@ -1,0 +1,161 @@
+/* Not found page */
+
+.not-found-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.not-found-container {
+  width: 760px;
+  min-height: 520px;
+  display: grid;
+  grid-template-columns: 300px 475px;
+  column-gap: 28px;
+  align-items: start;
+  margin: 70px auto 0;
+}
+
+.not-found-image-wrap {
+  width: 300px;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+}
+
+.not-found-image {
+  width: 260px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.not-found-content {
+  width: 475px;
+  padding-top: 62px;
+}
+
+.not-found-title {
+  width: 475px;
+  display: block;
+  margin: 0 0 8px;
+  padding: 0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-align: left;
+  white-space: normal;
+  text-transform: none;
+}
+
+.not-found-text {
+  width: 475px;
+}
+
+.not-found-text p {
+  width: 475px;
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+}
+
+.not-found-footer {
+  margin-top: auto;
+  padding-bottom: 32px;
+}
+
+/* Not found responsive */
+
+@media (max-width: 900px) {
+  .not-found-container {
+    width: calc(100% - 40px);
+    min-height: auto;
+    grid-template-columns: 1fr;
+    row-gap: 28px;
+    margin: 50px auto 0;
+    text-align: center;
+  }
+
+  .not-found-image-wrap {
+    width: 100%;
+    justify-content: center;
+    padding-top: 0;
+  }
+
+  .not-found-image {
+    width: 220px;
+  }
+
+  .not-found-content {
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .not-found-title {
+    width: 100%;
+    font-size: 24px;
+    line-height: 30px;
+    text-align: center;
+  }
+
+  .not-found-text {
+    width: 100%;
+    max-width: 475px;
+    margin: 0 auto;
+  }
+
+  .not-found-text p {
+    width: 100%;
+    text-align: center;
+  }
+}
+@media (max-width: 390px) {
+  .not-found-container {
+    width: 100%;
+    margin: 34px auto 0;
+    padding: 0 18px;
+    row-gap: 18px;
+  }
+
+  .not-found-image {
+    width: 170px;
+  }
+
+  .not-found-title {
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto 8px;
+    font-size: 18px;
+    line-height: 22px;
+    text-align: center;
+  }
+
+  .not-found-text {
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto;
+  }
+
+  .not-found-text p {
+    width: 100%;
+    font-size: 10px;
+    line-height: 14px;
+    text-align: center;
+  }
+
+  .not-found-footer {
+    padding-bottom: 22px;
+  }
+}
