@@ -113,7 +113,16 @@ function AppRouter() {
         }
       />
 
-      <Route path="*" element={<NotFoundPage />} />
+      <Route
+        path="*"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <NotFoundPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
