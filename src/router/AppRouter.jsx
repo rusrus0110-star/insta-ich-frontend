@@ -17,6 +17,7 @@ import NotFoundPage from "../pages/error/NotFoundPage.jsx";
 import ProfilePage from "../pages/profile/ProfilePage.jsx";
 import PostPage from "../pages/post/PostPage.jsx";
 import EditProfilePage from "../pages/profile/EditProfilePage.jsx";
+import CreatePostPage from "../pages/create_post/CreatePostPage.jsx";
 
 function AppRouter() {
   return (
@@ -97,6 +98,16 @@ function AppRouter() {
           <ProtectedRoute>
             <AppLayout>
               <PostPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-post"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <CreatePostPage />
             </AppLayout>
           </ProtectedRoute>
         }
