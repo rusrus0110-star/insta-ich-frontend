@@ -16,6 +16,8 @@ import NotificationsPage from "../pages/notifications/NotificationsPage.jsx";
 import NotFoundPage from "../pages/error/NotFoundPage.jsx";
 import ProfilePage from "../pages/profile/ProfilePage.jsx";
 import PostPage from "../pages/post/PostPage.jsx";
+import EditProfilePage from "../pages/profile/EditProfilePage.jsx";
+
 function AppRouter() {
   return (
     <Routes>
@@ -64,6 +66,16 @@ function AppRouter() {
           <ProtectedRoute>
             <AppLayout>
               <SearchPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/edit"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <EditProfilePage />
             </AppLayout>
           </ProtectedRoute>
         }
