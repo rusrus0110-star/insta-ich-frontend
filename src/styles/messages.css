@@ -316,25 +316,40 @@
 @media (max-width: 1320px) {
   .messages-container {
     width: 100%;
+    min-height: 456px;
     grid-template-columns: 340px minmax(0, 1fr);
   }
 
   .messages-list-panel {
     width: 340px;
+    min-height: 456px;
   }
 
   .messages-chat-list {
     width: 339px;
+    min-height: 456px;
   }
 
   .messages-dialog-panel {
     width: 100%;
+    min-height: 456px;
+    grid-template-rows: 238px 36px max-content 64px;
+    align-content: start;
+  }
+
+  .messages-thread {
+    padding: 42px 36px 18px;
+  }
+
+  .messages-input-form {
+    margin: 8px 36px 0;
   }
 }
 
 @media (max-width: 900px) {
   .messages-container {
     width: 100%;
+    min-height: 520px;
     grid-template-columns: 1fr;
   }
 
@@ -345,6 +360,11 @@
     border-bottom: 1px solid #dbdbdb;
   }
 
+  .messages-list-header {
+    height: 78px;
+    padding: 24px 16px 0;
+  }
+
   .messages-chat-list {
     width: 100%;
     min-height: auto;
@@ -352,14 +372,33 @@
 
   .messages-dialog-panel {
     width: 100%;
-    min-height: 620px;
+    min-height: 430px;
+    grid-template-rows: 180px 30px max-content 56px;
+    align-content: start;
+  }
+
+  .messages-dialog-header {
+    padding-top: 38px;
+  }
+
+  .messages-thread {
+    padding: 34px 24px 14px;
+    gap: 12px;
+  }
+
+  .messages-bubble {
+    max-width: 360px;
+  }
+
+  .messages-input-form {
+    margin: 8px 24px 0;
   }
 }
 
 @media (max-width: 520px) {
   .messages-list-header {
-    height: 78px;
-    padding-top: 24px;
+    height: 72px;
+    padding-top: 22px;
   }
 
   .messages-chat-item {
@@ -367,27 +406,196 @@
   }
 
   .messages-container {
-    min-height: auto;
+    min-height: 500px;
   }
 
   .messages-dialog-panel {
-    grid-template-rows: 190px 32px max-content 64px;
-    min-height: 560px;
+    min-height: 390px;
+    grid-template-rows: 160px 28px max-content 52px;
+    align-content: start;
   }
 
   .messages-dialog-header {
-    padding-top: 46px;
+    padding-top: 30px;
+  }
+
+  .messages-dialog-avatar {
+    width: 58px;
+    height: 58px;
+    padding: 3px;
+  }
+
+  .messages-dialog-avatar .messages-avatar-fallback {
+    width: 52px;
+    height: 52px;
+    font-size: 16px;
   }
 
   .messages-thread {
-    padding: 10px 14px 14px;
+    padding: 28px 14px 12px;
+    gap: 10px;
+  }
+
+  .messages-bubble-row {
+    align-items: flex-start;
+    gap: 7px;
   }
 
   .messages-bubble {
     max-width: 230px;
+    padding: 8px 11px;
+    font-size: 10px;
+    line-height: 14px;
+  }
+
+  .messages-small-avatar {
+    width: 22px;
+    height: 22px;
+    margin-top: 0;
+    font-size: 8px;
   }
 
   .messages-input-form {
+    height: 42px;
     margin: 8px 14px 0;
+    border-radius: 21px;
+  }
+
+  .messages-input-form input {
+    height: 40px;
+    font-size: 11px;
+  }
+
+  .messages-input-form button {
+    width: 42px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 390px) {
+  .messages-list-header {
+    height: 66px;
+    padding: 18px 14px 0;
+  }
+
+  .messages-list-header h1 {
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .messages-chat-item {
+    height: 58px;
+    padding: 0 14px;
+  }
+
+  .messages-avatar-ring {
+    width: 38px;
+    height: 38px;
+  }
+
+  .messages-avatar-fallback {
+    width: 34px;
+    height: 34px;
+    font-size: 11px;
+  }
+
+  .messages-chat-name {
+    font-size: 11px;
+    line-height: 15px;
+  }
+
+  .messages-chat-preview {
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  .messages-container {
+    min-height: 470px;
+  }
+
+  .messages-dialog-panel {
+    min-height: 360px;
+    grid-template-rows: 145px 26px max-content 50px;
+    align-content: start;
+  }
+
+  .messages-dialog-header {
+    padding-top: 24px;
+  }
+
+  .messages-dialog-avatar {
+    width: 52px;
+    height: 52px;
+    padding: 3px;
+  }
+
+  .messages-dialog-avatar .messages-avatar-fallback {
+    width: 46px;
+    height: 46px;
+    font-size: 15px;
+  }
+
+  .messages-dialog-header h2 {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .messages-dialog-header p {
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  .messages-view-profile-button {
+    height: 26px;
+    padding: 0 14px;
+    font-size: 10px;
+    line-height: 26px;
+  }
+
+  .messages-date-divider {
+    font-size: 9px;
+    line-height: 12px;
+  }
+
+  .messages-thread {
+    padding: 22px 12px 10px;
+    gap: 9px;
+  }
+
+  .messages-bubble-row {
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .messages-small-avatar {
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
+    font-size: 8px;
+  }
+
+  .messages-bubble {
+    max-width: 210px;
+    padding: 7px 10px;
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  .messages-input-form {
+    height: 40px;
+    margin: 8px 12px 0;
+    border-radius: 20px;
+  }
+
+  .messages-input-form input {
+    height: 38px;
+    padding: 0 14px;
+    font-size: 11px;
+  }
+
+  .messages-input-form button {
+    width: 40px;
+    height: 38px;
   }
 }
