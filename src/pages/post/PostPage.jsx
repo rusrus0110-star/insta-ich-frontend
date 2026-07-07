@@ -1,5 +1,6 @@
-import { Link, useParams } from "react-router-dom";
-import { Heart, MessageCircle, MoreHorizontal, Send } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Heart, MessageCircle, MoreHorizontal, Send, X } from "lucide-react";
 
 import ProfilePage from "../profile/ProfilePage.jsx";
 
@@ -319,9 +320,51 @@ function PostAvatar({ user }) {
 
 function PostPage() {
   const { postId } = useParams();
+  const navigate = useNavigate();
+
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const post = posts[postId] || posts["ich-post-1"];
   const postUser = getUser(post.username);
+
+  function handleClosePost() {
+    navigate(`/profile/${post.username}`);
+  }
+
+  function handleOpenMenu() {
+    setIsMenuOpen(true);
+  }
+
+  function handleCloseMenu() {
+    setIsMenuOpen(false);
+  }
+
+  function handleGoToPost() {
+    setIsMenuOpen(false);
+    navigate(`/profile/${post.username}`);
+  }
+
+  function handleEditPost() {
+    setIsMenuOpen(false);
+    navigate(`/posts/${post.id}/edit`);
+  }
+
+  function handleDeletePost() {
+    setIsMenuOpen(false);
+    console.log("Delete post will be connected to backend later:", post.id);
+  }
+
+  async function handleCopyLink() {
+    const postUrl = `${window.location.origin}/posts/${post.id}`;
+
+    try {
+      await navigator.clipboard.writeText(postUrl);
+    } catch (error) {
+      console.log("Copy link fallback:", postUrl, error);
+    }
+
+    setIsMenuOpen(false);
+  }
 
   return (
     <main className="post-page">
@@ -357,12 +400,24 @@ function PostPage() {
               </button>
             )}
 
+            {post.isOwnPost && (
+              <button
+                type="button"
+                className="post-modal-menu-button"
+                aria-label="Post menu"
+                onClick={handleOpenMenu}
+              >
+                <MoreHorizontal size={20} strokeWidth={2} />
+              </button>
+            )}
+
             <button
               type="button"
-              className="post-modal-menu-button"
-              aria-label="Post menu"
+              className="post-modal-close-button"
+              aria-label="Close post"
+              onClick={handleClosePost}
             >
-              <MoreHorizontal size={20} strokeWidth={2} />
+              <X size={18} strokeWidth={2} />
             </button>
           </header>
 
@@ -436,6 +491,52 @@ function PostPage() {
           </footer>
         </aside>
       </section>
+
+      {isMenuOpen && post.isOwnPost && (
+        <div className="post-action-layer">
+          <div className="post-action-dialog" role="dialog" aria-modal="true">
+            <button
+              type="button"
+              className="post-action-button post-action-button-danger"
+              onClick={handleDeletePost}
+            >
+              Delete
+            </button>
+
+            <button
+              type="button"
+              className="post-action-button"
+              onClick={handleEditPost}
+            >
+              Edit
+            </button>
+
+            <button
+              type="button"
+              className="post-action-button"
+              onClick={handleGoToPost}
+            >
+              Go to post
+            </button>
+
+            <button
+              type="button"
+              className="post-action-button"
+              onClick={handleCopyLink}
+            >
+              Copy link
+            </button>
+
+            <button
+              type="button"
+              className="post-action-button"
+              onClick={handleCloseMenu}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
