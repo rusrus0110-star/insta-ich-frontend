@@ -3,17 +3,19 @@ import {
   Compass,
   Heart,
   Home,
+  LogOut,
   MessageCircle,
   Search,
   User,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import ichgra_logo from "../../assets/ichgra_logo.png";
 import useAuth from "../../hooks/useAuth.js";
 
 function Sidebar() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const profile_link = user?.username
     ? `/profile/${user.username}`
@@ -51,6 +53,15 @@ function Sidebar() {
       icon: CirclePlus,
     },
   ];
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("auth");
+    localStorage.removeItem("user");
+
+    navigate("/login");
+    window.location.reload();
+  }
 
   return (
     <aside className="sidebar">
@@ -98,6 +109,15 @@ function Sidebar() {
 
           <span>Profile</span>
         </NavLink>
+
+        <button
+          type="button"
+          className="sidebar-link sidebar-logout-button"
+          onClick={handleLogout}
+        >
+          <LogOut size={20} strokeWidth={1.8} />
+          <span>Logout</span>
+        </button>
       </div>
     </aside>
   );
