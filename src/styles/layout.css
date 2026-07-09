@@ -87,6 +87,21 @@
   object-fit: cover;
 }
 
+.sidebar-logout-button {
+  margin-top: 20px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.sidebar-logout-button:hover {
+  background: #fafafa;
+  color: #000000;
+  font-weight: 400;
+}
+
 .footer {
   height: 120px;
   min-height: 120px;
