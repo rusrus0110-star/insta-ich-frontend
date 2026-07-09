@@ -125,6 +125,17 @@ function AppRouter() {
       />
 
       <Route
+        path="/messages/:username"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <MessagesPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="*"
         element={
           <ProtectedRoute>
