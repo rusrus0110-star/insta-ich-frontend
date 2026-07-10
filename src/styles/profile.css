@@ -49,6 +49,7 @@
 
 .profile-avatar-image {
   object-fit: cover;
+  object-position: center 25%;
   background: #ffffff;
 }
 
@@ -247,6 +248,73 @@
   line-height: 18px;
   font-weight: 600;
   text-decoration: none;
+}
+
+.profile-follow-button-active {
+  background: #efefef;
+  color: #262626;
+}
+
+.profile-follow-button-active:hover {
+  background: #dbdbdb;
+}
+
+.profile-state-box {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: #8e8e8e;
+  text-align: center;
+}
+
+.profile-state-box h1 {
+  margin: 0;
+  color: #262626;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+}
+
+.profile-state-box p {
+  margin: 0;
+  color: #8e8e8e;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.profile-empty-posts {
+  width: 935px;
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  border-top: 1px solid #dbdbdb;
+  color: #8e8e8e;
+}
+
+.profile-empty-posts p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+@media (max-width: 1280px) {
+  .profile-empty-posts {
+    width: 824px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .profile-empty-posts {
+    width: 704px;
+  }
+}
+
+@media (max-width: 760px) {
+  .profile-empty-posts {
+    width: 100%;
+  }
 }
 /* Profile responsive */
 
