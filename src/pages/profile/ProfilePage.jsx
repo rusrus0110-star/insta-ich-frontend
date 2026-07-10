@@ -6,6 +6,8 @@ import {
   toggle_follow_user,
 } from "../../services/user_api_service.js";
 
+import { get_user_posts } from "../../services/post_api_service.js";
+
 import "../../styles/profile.css";
 
 function get_current_user() {
@@ -64,7 +66,23 @@ function format_count(value) {
     .replaceAll(",", " ");
 }
 
+function normalize_posts(posts, username) {
+  if (!Array.isArray(posts)) {
+    return [];
+  }
+
+  return posts
+    .map((post) => ({
+      id: post.id || post._id,
+      image: post.image_url || post.image,
+      alt: post.caption || `${username} post`,
+    }))
+    .filter((post) => post.id && post.image);
+}
+
 function normalize_profile(user, currentUser) {
+  const posts = normalize_posts(user.posts, user.username);
+
   const isCurrentUser =
     user?.is_current_user ||
     String(user?.id) === String(currentUser?.id) ||
@@ -79,12 +97,12 @@ function normalize_profile(user, currentUser) {
     bio: user.bio || "",
     website: user.website || "",
     websiteUrl: build_website_url(user.website),
-    postsCount: user.posts_count || user.postsCount || 0,
+    postsCount: user.posts_count ?? user.postsCount ?? posts.length,
     followersCount: user.followers_count || user.followersCount || 0,
     followingCount: user.following_count || user.followingCount || 0,
     isOwnProfile: isCurrentUser,
     isFollowed: Boolean(user.is_followed_by_current_user),
-    posts: [],
+    posts,
   };
 }
 
@@ -164,12 +182,25 @@ function ProfilePage({ forcedUsername }) {
     async function load_profile() {
       try {
         const userData = await get_user_profile_by_username(activeUsername);
+        const userPosts = await get_user_posts(userData.id || userData._id);
 
         if (!isActive) {
           return;
         }
 
-        setProfile(normalize_profile(userData, currentUser));
+        const normalizedPosts = normalize_posts(userPosts, userData.username);
+
+        setProfile(
+          normalize_profile(
+            {
+              ...userData,
+              posts_count: normalizedPosts.length,
+              posts: normalizedPosts,
+            },
+            currentUser,
+          ),
+        );
+
         setProfileError("");
         setCompletedUsername(activeUsername);
       } catch (error) {
@@ -200,7 +231,18 @@ function ProfilePage({ forcedUsername }) {
     try {
       const updatedUser = await toggle_follow_user(profile.id);
 
-      setProfile(normalize_profile(updatedUser, currentUser));
+      setProfile((currentProfile) => {
+        const currentPosts = currentProfile?.posts || [];
+
+        return normalize_profile(
+          {
+            ...updatedUser,
+            posts_count: currentPosts.length,
+            posts: currentPosts,
+          },
+          currentUser,
+        );
+      });
     } catch (error) {
       console.error("Failed to follow user:", error.message);
     }

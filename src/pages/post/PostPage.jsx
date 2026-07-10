@@ -1,305 +1,103 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Heart, MessageCircle, MoreHorizontal, Send, X } from "lucide-react";
 
 import ProfilePage from "../profile/ProfilePage.jsx";
 
-import ruslanPost1 from "../../assets/profiles/ruslan/post-1.png";
-import ruslanPost2 from "../../assets/profiles/ruslan/post-2.png";
-import ruslanPost3 from "../../assets/profiles/ruslan/post-3.png";
-import ruslanPost4 from "../../assets/profiles/ruslan/post-4.png";
-import ruslanPost5 from "../../assets/profiles/ruslan/post-5.png";
-import ruslanPost6 from "../../assets/profiles/ruslan/post-6.png";
-
-import ichAvatar from "../../assets/profiles/ich/avatar.png";
-import ichPost1 from "../../assets/profiles/ich/post-1.png";
-import ichPost2 from "../../assets/profiles/ich/post-2.png";
-import ichPost3 from "../../assets/profiles/ich/post-3.png";
-import ichPost4 from "../../assets/profiles/ich/post-4.png";
-import ichPost5 from "../../assets/profiles/ich/post-5.png";
-import ichPost6 from "../../assets/profiles/ich/post-6.png";
+import { get_post_by_id } from "../../services/post_api_service.js";
 
 import "../../styles/post.css";
 
-const users = {
-  ruslan: {
-    username: "ruslan",
-    displayName: "Ruslan Chyhryn",
-    avatarText: "RC",
-  },
-  ichcareerhub: {
-    username: "ichcareerhub",
-    displayName: "ICH Career Hub",
-    avatar: ichAvatar,
-  },
-  sashaa: {
-    username: "sashaa",
-    displayName: "Sasha",
-    avatarText: "S",
-  },
-  alex: {
-    username: "alex",
-    displayName: "Alex",
-    avatarText: "A",
-  },
-  marina: {
-    username: "marina",
-    displayName: "Marina",
-    avatarText: "M",
-  },
-  natalia: {
-    username: "natalia",
-    displayName: "Natalia",
-    avatarText: "N",
-  },
-  roman: {
-    username: "roman",
-    displayName: "Roman",
-    avatarText: "R",
-  },
-  anna: {
-    username: "anna",
-    displayName: "Anna",
-    avatarText: "A",
-  },
-  max: {
-    username: "max",
-    displayName: "Max",
-    avatarText: "M",
-  },
-  lena: {
-    username: "lena",
-    displayName: "Lena",
-    avatarText: "L",
-  },
-};
+function get_current_user() {
+  const userData = localStorage.getItem("user");
 
-const posts = {
-  "ruslan-post-1": {
-    id: "ruslan-post-1",
-    image: ruslanPost1,
-    username: "ruslan",
-    likes: 128,
-    time: "2 d",
-    isOwnPost: true,
-    caption:
-      "AI workflow automation connects forms, CRM records, scoring logic and follow-up actions into one clean backend process.",
-    comments: [
-      {
-        id: 1,
-        username: "ichcareerhub",
-        text: "Strong practical project for CRM automation.",
-      },
-      {
-        id: 2,
-        username: "sashaa",
-        text: "Clean architecture and useful business case.",
-      },
-    ],
-  },
-  "ruslan-post-2": {
-    id: "ruslan-post-2",
-    image: ruslanPost2,
-    username: "ruslan",
-    likes: 94,
-    time: "3 d",
-    isOwnPost: true,
-    caption:
-      "CRM automation pipeline: capture, validate, enrich, score and sync clean lead data.",
-    comments: [
-      {
-        id: 1,
-        username: "alex",
-        text: "This is exactly how middleware should be shown.",
-      },
-    ],
-  },
-  "ruslan-post-3": {
-    id: "ruslan-post-3",
-    image: ruslanPost3,
-    username: "ruslan",
-    likes: 117,
-    time: "4 d",
-    isOwnPost: true,
-    caption:
-      "API integration layer between frontend forms, backend services and external CRM systems.",
-    comments: [
-      {
-        id: 1,
-        username: "marina",
-        text: "Very clear API concept.",
-      },
-    ],
-  },
-  "ruslan-post-4": {
-    id: "ruslan-post-4",
-    image: ruslanPost4,
-    username: "ruslan",
-    likes: 86,
-    time: "5 d",
-    isOwnPost: true,
-    caption:
-      "Lead scoring helps sales teams focus on qualified contacts instead of raw database noise.",
-    comments: [
-      {
-        id: 1,
-        username: "natalia",
-        text: "Good business value.",
-      },
-    ],
-  },
-  "ruslan-post-5": {
-    id: "ruslan-post-5",
-    image: ruslanPost5,
-    username: "ruslan",
-    likes: 102,
-    time: "1 wek",
-    isOwnPost: true,
-    caption:
-      "Data quality validation before CRM sync prevents duplicates, invalid emails and incomplete records.",
-    comments: [
-      {
-        id: 1,
-        username: "roman",
-        text: "This is a useful backend feature.",
-      },
-    ],
-  },
-  "ruslan-post-6": {
-    id: "ruslan-post-6",
-    image: ruslanPost6,
-    username: "ruslan",
-    likes: 140,
-    time: "1 wek",
-    isOwnPost: true,
-    caption:
-      "Analytics and AI summaries turn raw lead activity into actionable business insights.",
-    comments: [
-      {
-        id: 1,
-        username: "anna",
-        text: "Nice visual direction.",
-      },
-    ],
-  },
+  if (!userData) {
+    return null;
+  }
 
-  "ich-post-1": {
-    id: "ich-post-1",
-    image: ichPost1,
-    username: "ichcareerhub",
-    likes: 256,
-    time: "2 d",
-    isOwnPost: false,
-    caption:
-      "Graduate project with IT Career Hub will be presented at Web Summit 2024 in Lisbon.",
-    comments: [
-      {
-        id: 1,
-        username: "ruslan",
-        text: "Great opportunity for students and career changers.",
-      },
-      {
-        id: 2,
-        username: "sashaa",
-        text: "Very inspiring project.",
-      },
-    ],
-  },
-  "ich-post-2": {
-    id: "ich-post-2",
-    image: ichPost2,
-    username: "ichcareerhub",
-    likes: 198,
-    time: "3 d",
-    isOwnPost: false,
-    caption:
-      "A practical guide for job search in Germany: portfolio, CV, LinkedIn and interview preparation.",
-    comments: [
-      {
-        id: 1,
-        username: "ruslan",
-        text: "This is useful for every career changer.",
-      },
-    ],
-  },
-  "ich-post-3": {
-    id: "ich-post-3",
-    image: ichPost3,
-    username: "ichcareerhub",
-    likes: 221,
-    time: "4 d",
-    isOwnPost: false,
-    caption:
-      "Learning web development through real projects, teamwork and practical career support.",
-    comments: [
-      {
-        id: 1,
-        username: "anna",
-        text: "Real projects make the difference.",
-      },
-    ],
-  },
-  "ich-post-4": {
-    id: "ich-post-4",
-    image: ichPost4,
-    username: "ichcareerhub",
-    likes: 176,
-    time: "5 d",
-    isOwnPost: false,
-    caption:
-      "Students receive support, learning materials and practical tools for entering the IT market.",
-    comments: [
-      {
-        id: 1,
-        username: "max",
-        text: "Good motivation for new students.",
-      },
-    ],
-  },
-  "ich-post-5": {
-    id: "ich-post-5",
-    image: ichPost5,
-    username: "ichcareerhub",
-    likes: 209,
-    time: "1 wek",
-    isOwnPost: false,
-    caption:
-      "Changing careers into IT is challenging, but structured learning and mentoring make it realistic.",
-    comments: [
-      {
-        id: 1,
-        username: "ruslan",
-        text: "Exactly. Structure and practice are essential.",
-      },
-    ],
-  },
-  "ich-post-6": {
-    id: "ich-post-6",
-    image: ichPost6,
-    username: "ichcareerhub",
-    likes: 188,
-    time: "1 wek",
-    isOwnPost: false,
-    caption:
-      "Students with children also build new professional paths and work toward a bigger goal.",
-    comments: [
-      {
-        id: 1,
-        username: "lena",
-        text: "Very motivating story.",
-      },
-    ],
-  },
-};
+  try {
+    const parsedUserData = JSON.parse(userData);
+    const user = parsedUserData.user || parsedUserData;
 
-function getUser(username) {
-  return (
-    users[username] || {
-      username,
-      displayName: username,
-      avatarText: username.charAt(0).toUpperCase(),
-    }
-  );
+    return {
+      id: user.id || user._id || user.user_id,
+      username: user.username,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function get_avatar_text(user) {
+  const source = user?.username || user?.full_name || "U";
+
+  return source
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
+function format_time(value) {
+  if (!value) {
+    return "";
+  }
+
+  const createdDate = new Date(value);
+  const now = new Date();
+
+  const diffMs = now.getTime() - createdDate.getTime();
+  const diffMinutes = Math.floor(diffMs / 1000 / 60);
+  const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMinutes < 1) {
+    return "now";
+  }
+
+  if (diffMinutes < 60) {
+    return `${diffMinutes} min`;
+  }
+
+  if (diffHours < 24) {
+    return `${diffHours} h`;
+  }
+
+  if (diffDays < 7) {
+    return `${diffDays} d`;
+  }
+
+  return createdDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function normalize_post(post, currentUser) {
+  const author = post.author || {};
+  const authorId = author.id || author._id;
+
+  return {
+    id: post.id || post._id,
+    image: post.image_url || post.image,
+    caption: post.caption || "",
+    likes: post.likes_count || post.likesCount || 0,
+    commentsCount: post.comments_count || post.commentsCount || 0,
+    isLiked: Boolean(post.is_liked_by_current_user),
+    time: format_time(post.created_at || post.createdAt),
+    createdAt: post.created_at || post.createdAt,
+    isOwnPost:
+      String(authorId) === String(currentUser?.id) ||
+      author.username === currentUser?.username,
+    author: {
+      id: authorId,
+      username: author.username || "unknown",
+      displayName: author.full_name || author.fullName || author.username,
+      avatar: author.avatar || "",
+      avatarText: get_avatar_text(author),
+    },
+  };
 }
 
 function PostAvatar({ user }) {
@@ -321,14 +119,60 @@ function PostAvatar({ user }) {
 function PostPage() {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const currentUser = useMemo(() => get_current_user(), []);
 
+  const [post, setPost] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [completedPostId, setCompletedPostId] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const post = posts[postId] || posts["ich-post-1"];
-  const postUser = getUser(post.username);
+  const isPostLoaded = completedPostId === postId;
+
+  useEffect(() => {
+    if (!postId) {
+      return;
+    }
+
+    let isActive = true;
+
+    async function load_post() {
+      try {
+        const postData = await get_post_by_id(postId);
+
+        if (!isActive) {
+          return;
+        }
+
+        setPost(normalize_post(postData, currentUser));
+        setErrorMessage("");
+        setCompletedPostId(postId);
+      } catch (error) {
+        console.error("Failed to load post:", error.message);
+
+        if (!isActive) {
+          return;
+        }
+
+        setPost(null);
+        setErrorMessage(error.message);
+        setCompletedPostId(postId);
+      }
+    }
+
+    load_post();
+
+    return () => {
+      isActive = false;
+    };
+  }, [postId, currentUser]);
 
   function handleClosePost() {
-    navigate(`/profile/${post.username}`);
+    if (post?.author?.username) {
+      navigate(`/profile/${post.author.username}`);
+      return;
+    }
+
+    navigate("/profile");
   }
 
   function handleOpenMenu() {
@@ -341,7 +185,6 @@ function PostPage() {
 
   function handleGoToPost() {
     setIsMenuOpen(false);
-    navigate(`/profile/${post.username}`);
   }
 
   function handleEditPost() {
@@ -366,10 +209,57 @@ function PostPage() {
     setIsMenuOpen(false);
   }
 
+  if (!isPostLoaded) {
+    return (
+      <main className="post-page">
+        <div className="post-dark-overlay" />
+
+        <section className="post-modal">
+          <div className="post-modal-image-side" />
+          <aside className="post-modal-content">
+            <div className="post-modal-body">
+              <p>Loading post...</p>
+            </div>
+          </aside>
+        </section>
+      </main>
+    );
+  }
+
+  if (errorMessage || !post) {
+    return (
+      <main className="post-page">
+        <div className="post-dark-overlay" />
+
+        <section className="post-modal">
+          <div className="post-modal-image-side" />
+          <aside className="post-modal-content">
+            <header className="post-modal-header">
+              <p>Post not found</p>
+
+              <button
+                type="button"
+                className="post-modal-close-button"
+                aria-label="Close post"
+                onClick={() => navigate("/profile")}
+              >
+                <X size={18} strokeWidth={2} />
+              </button>
+            </header>
+
+            <div className="post-modal-body">
+              <p>{errorMessage || "This post does not exist."}</p>
+            </div>
+          </aside>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="post-page">
       <div className="post-background">
-        <ProfilePage forcedUsername={post.username} />
+        <ProfilePage forcedUsername={post.author.username} />
       </div>
 
       <div className="post-dark-overlay" />
@@ -378,19 +268,22 @@ function PostPage() {
         <div className="post-modal-image-side">
           <img
             src={post.image}
-            alt={post.caption}
+            alt={post.caption || "Post image"}
             className="post-modal-image"
           />
         </div>
 
         <aside className="post-modal-content">
           <header className="post-modal-header">
-            <Link to={`/profile/${post.username}`} className="post-modal-user">
-              <PostAvatar user={postUser} />
+            <Link
+              to={`/profile/${post.author.username}`}
+              className="post-modal-user"
+            >
+              <PostAvatar user={post.author} />
 
               <div className="post-modal-user-text">
-                <p>{postUser.username}</p>
-                <span>{postUser.displayName}</span>
+                <p>{post.author.username}</p>
+                <span>{post.author.displayName}</span>
               </div>
             </Link>
 
@@ -424,16 +317,16 @@ function PostPage() {
           <div className="post-modal-body">
             <article className="post-modal-caption">
               <Link
-                to={`/profile/${post.username}`}
+                to={`/profile/${post.author.username}`}
                 className="post-modal-caption-avatar"
               >
-                <PostAvatar user={postUser} />
+                <PostAvatar user={post.author} />
               </Link>
 
               <div>
                 <p>
-                  <Link to={`/profile/${post.username}`}>
-                    {postUser.username}
+                  <Link to={`/profile/${post.author.username}`}>
+                    {post.author.username}
                   </Link>{" "}
                   {post.caption}
                 </p>
@@ -442,27 +335,11 @@ function PostPage() {
             </article>
 
             <div className="post-modal-comments">
-              {post.comments.map((comment) => {
-                const commentUser = getUser(comment.username);
-
-                return (
-                  <article key={comment.id} className="post-modal-comment">
-                    <Link
-                      to={`/profile/${comment.username}`}
-                      className="post-modal-comment-avatar"
-                    >
-                      <PostAvatar user={commentUser} />
-                    </Link>
-
-                    <p>
-                      <Link to={`/profile/${comment.username}`}>
-                        {commentUser.username}
-                      </Link>{" "}
-                      {comment.text}
-                    </p>
-                  </article>
-                );
-              })}
+              {post.commentsCount > 0 ? (
+                <p>{post.commentsCount} comments</p>
+              ) : (
+                <p>No comments yet.</p>
+              )}
             </div>
           </div>
 
