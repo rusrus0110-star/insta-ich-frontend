@@ -491,6 +491,21 @@
   opacity: 0.65;
   cursor: not-allowed;
 }
+
+.post-modal-follow-button-active {
+  background: #efefef;
+  color: #262626;
+}
+
+.post-modal-follow-button-active:hover {
+  background: #dbdbdb;
+}
+
+.post-modal-follow-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 /* Post responsive */
 
 @media (max-width: 1180px) {

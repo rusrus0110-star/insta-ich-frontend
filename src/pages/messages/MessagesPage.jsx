@@ -27,10 +27,11 @@ function get_current_user() {
 
       return {
         id: user.id || user._id || user.user_id,
-        username: user.username || "ruslan",
-        displayName: user.full_name || user.fullName || "Ruslan Chyhryn",
-        avatar: user.avatar || null,
-        avatarText: (user.username || "ruslan").charAt(0).toUpperCase(),
+        username: user.username || "user",
+        displayName:
+          user.full_name || user.fullName || user.username || "Current user",
+        avatar: user.avatar || "",
+        avatarText: get_avatar_text(user),
       };
     } catch {
       return null;
@@ -39,10 +40,10 @@ function get_current_user() {
 
   return {
     id: null,
-    username: "ruslan",
-    displayName: "Ruslan Chyhryn",
-    avatar: null,
-    avatarText: "R",
+    username: "user",
+    displayName: "Current user",
+    avatar: "",
+    avatarText: "U",
   };
 }
 
@@ -53,7 +54,12 @@ function get_user_id(user) {
 function get_avatar_text(user) {
   const source = user?.username || user?.full_name || user?.fullName || "U";
 
-  return source.charAt(0).toUpperCase();
+  return source
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
 }
 
 function normalize_user(user) {
@@ -61,24 +67,29 @@ function normalize_user(user) {
     id: get_user_id(user),
     username: user.username || "unknown",
     displayName: user.full_name || user.fullName || user.username || "Unknown",
-    avatar: user.avatar || null,
+    avatar: user.avatar || "",
     avatarText: get_avatar_text(user),
   };
 }
 
 function normalize_message(message, currentUser) {
-  const senderId = get_user_id(message.sender) || message.sender;
+  const sender =
+    message.sender && typeof message.sender === "object"
+      ? normalize_user(message.sender)
+      : null;
+
+  const senderId = sender?.id || message.sender;
 
   const isSent =
     currentUser?.id && senderId
       ? String(senderId) === String(currentUser.id)
-      : message.sender?.username === currentUser?.username;
+      : sender?.username === currentUser?.username;
 
   return {
-    id: message.id || message._id || Date.now(),
+    id: message.id || message._id || crypto.randomUUID(),
     type: isSent ? "sent" : "received",
     text: message.text,
-    sender: message.sender,
+    sender,
     createdAt: message.created_at || message.createdAt,
   };
 }
@@ -95,30 +106,43 @@ function normalize_conversation(conversation, currentUser) {
     }) ||
     participants[0];
 
-  const otherUsername = otherUser?.username || "unknown";
-
-  const otherDisplayName =
-    otherUser?.full_name ||
-    otherUser?.fullName ||
-    otherUser?.username ||
-    "Unknown user";
+  const normalizedOtherUser = normalize_user(otherUser || {});
 
   const lastMessage = conversation.last_message || conversation.lastMessage;
 
   const status = lastMessage
-    ? `${otherDisplayName} sent a message · now`
+    ? `${normalizedOtherUser.displayName} sent a message · now`
     : "No messages yet";
 
   return {
     id: conversation.id || conversation._id,
-    username: otherUsername,
-    displayName: otherDisplayName,
+    username: normalizedOtherUser.username,
+    displayName: normalizedOtherUser.displayName,
     status,
-    avatar: otherUser?.avatar || null,
-    avatarText: get_avatar_text(otherUser),
-    profileLink: `/profile/${otherUsername}`,
+    avatar: normalizedOtherUser.avatar,
+    avatarText: normalizedOtherUser.avatarText,
+    profileLink: `/profile/${normalizedOtherUser.username}`,
     raw: conversation,
   };
+}
+
+function Avatar({ user, className = "" }) {
+  const normalizedUser = user || {};
+
+  return (
+    <span className={className}>
+      {normalizedUser.avatar ? (
+        <img
+          src={normalizedUser.avatar}
+          alt={`${normalizedUser.username || "user"} avatar`}
+        />
+      ) : (
+        <span>
+          {normalizedUser.avatarText || get_avatar_text(normalizedUser)}
+        </span>
+      )}
+    </span>
+  );
 }
 
 function MessagesPage() {
@@ -134,7 +158,7 @@ function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  const activeChat = chats.find((chat) => chat.id === activeChatId) || chats[0];
+  const activeChat = chats.find((chat) => chat.id === activeChatId) || null;
 
   const activeMessages = activeChat
     ? messagesByConversation[activeChat.id] || []
@@ -335,8 +359,6 @@ function MessagesPage() {
 
     async function open_target_conversation() {
       try {
-        await Promise.resolve();
-
         const existingChat = chats.find(
           (chat) => chat.username === targetUsername,
         );
@@ -467,16 +489,7 @@ function MessagesPage() {
         <aside className="messages-list-panel">
           <header className="messages-list-header">
             <div className="messages-current-user">
-              <span className="messages-current-avatar">
-                {currentUser.avatar ? (
-                  <img
-                    src={currentUser.avatar}
-                    alt={`${currentUser.username} avatar`}
-                  />
-                ) : (
-                  <span>{currentUser.avatarText}</span>
-                )}
-              </span>
+              <Avatar user={currentUser} className="messages-current-avatar" />
 
               <div>
                 <h1>{currentUser.username}</h1>
@@ -522,19 +535,7 @@ function MessagesPage() {
                 }
                 onClick={() => handleSelectChat(chat.id)}
               >
-                <span className="messages-avatar-ring">
-                  {chat.avatar ? (
-                    <img
-                      src={chat.avatar}
-                      alt={`${chat.username} avatar`}
-                      className="messages-avatar-image"
-                    />
-                  ) : (
-                    <span className="messages-avatar-fallback">
-                      {chat.avatarText}
-                    </span>
-                  )}
-                </span>
+                <Avatar user={chat} className="messages-avatar-ring" />
 
                 <span className="messages-chat-info">
                   <span className="messages-chat-name">{chat.username}</span>
@@ -552,19 +553,7 @@ function MessagesPage() {
                     className="messages-chat-item"
                     onClick={() => handleStartConversation(user.id)}
                   >
-                    <span className="messages-avatar-ring">
-                      {user.avatar ? (
-                        <img
-                          src={user.avatar}
-                          alt={`${user.username} avatar`}
-                          className="messages-avatar-image"
-                        />
-                      ) : (
-                        <span className="messages-avatar-fallback">
-                          {user.avatarText}
-                        </span>
-                      )}
-                    </span>
+                    <Avatar user={user} className="messages-avatar-ring" />
 
                     <span className="messages-chat-info">
                       <span className="messages-chat-name">
@@ -588,19 +577,10 @@ function MessagesPage() {
           {activeChat ? (
             <>
               <header className="messages-dialog-header">
-                <span className="messages-avatar-ring messages-dialog-avatar">
-                  {activeChat.avatar ? (
-                    <img
-                      src={activeChat.avatar}
-                      alt={`${activeChat.username} avatar`}
-                      className="messages-avatar-image"
-                    />
-                  ) : (
-                    <span className="messages-avatar-fallback">
-                      {activeChat.avatarText}
-                    </span>
-                  )}
-                </span>
+                <Avatar
+                  user={activeChat}
+                  className="messages-avatar-ring messages-dialog-avatar"
+                />
 
                 <h2>{activeChat.username}</h2>
                 <p>{activeChat.displayName}</p>
@@ -618,6 +598,9 @@ function MessagesPage() {
               <div className="messages-thread">
                 {activeMessages.map((message) => {
                   const isSent = message.type === "sent";
+                  const messageUser = isSent
+                    ? currentUser
+                    : message.sender || activeChat;
 
                   return (
                     <div
@@ -629,9 +612,10 @@ function MessagesPage() {
                       }
                     >
                       {!isSent && (
-                        <span className="messages-small-avatar">
-                          {activeChat.avatarText}
-                        </span>
+                        <Avatar
+                          user={messageUser}
+                          className="messages-small-avatar"
+                        />
                       )}
 
                       <p
@@ -645,9 +629,10 @@ function MessagesPage() {
                       </p>
 
                       {isSent && (
-                        <span className="messages-small-avatar messages-small-avatar-sent">
-                          {currentUser.avatarText}
-                        </span>
+                        <Avatar
+                          user={currentUser}
+                          className="messages-small-avatar messages-small-avatar-sent"
+                        />
                       )}
                     </div>
                   );

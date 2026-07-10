@@ -13,6 +13,11 @@ import {
   toggle_post_like,
 } from "../../services/post_api_service.js";
 
+import {
+  get_user_profile_by_username,
+  toggle_follow_user,
+} from "../../services/user_api_service.js";
+
 import "../../styles/post.css";
 
 function get_current_user() {
@@ -91,11 +96,13 @@ function normalize_author(author) {
       author?.full_name || author?.fullName || author?.username || "Unknown",
     avatar: author?.avatar || "",
     avatarText: get_avatar_text(author),
+    isFollowed: Boolean(author?.is_followed_by_current_user),
   };
 }
 
-function normalize_post(post, currentUser) {
-  const author = normalize_author(post.author || {});
+function normalize_post(post, currentUser, authorProfile = null) {
+  const authorSource = authorProfile || post.author || {};
+  const author = normalize_author(authorSource);
 
   return {
     id: post.id || post._id,
@@ -154,6 +161,7 @@ function PostPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState("");
 
   const isPostLoaded = completedPostId === postId;
@@ -176,7 +184,23 @@ function PostPage() {
           return;
         }
 
-        setPost(normalize_post(postData, currentUser));
+        const basePost = normalize_post(postData, currentUser);
+        let authorProfile = null;
+
+        if (
+          basePost.author.username &&
+          basePost.author.username !== currentUser?.username
+        ) {
+          authorProfile = await get_user_profile_by_username(
+            basePost.author.username,
+          );
+        }
+
+        if (!isActive) {
+          return;
+        }
+
+        setPost(normalize_post(postData, currentUser, authorProfile));
         setComments(commentsData.map(normalize_comment));
         setErrorMessage("");
         setCompletedPostId(postId);
@@ -274,12 +298,53 @@ function PostPage() {
 
       const updatedPost = await toggle_post_like(post.id);
 
-      setPost(normalize_post(updatedPost, currentUser));
+      setPost((currentPost) => {
+        const nextPost = normalize_post(updatedPost, currentUser);
+
+        return {
+          ...nextPost,
+          author: currentPost.author,
+          isOwnPost: currentPost.isOwnPost,
+        };
+      });
     } catch (error) {
       console.error("Failed to like post:", error.message);
       window.alert(error.message);
     } finally {
       setIsLiking(false);
+    }
+  }
+
+  async function handleToggleFollow() {
+    if (!post?.author?.id || isFollowing) {
+      return;
+    }
+
+    try {
+      setIsFollowing(true);
+
+      const updatedUser = await toggle_follow_user(post.author.id);
+
+      setPost((currentPost) => ({
+        ...currentPost,
+        author: {
+          ...currentPost.author,
+          id: updatedUser.id || updatedUser._id || currentPost.author.id,
+          username: updatedUser.username || currentPost.author.username,
+          displayName:
+            updatedUser.full_name ||
+            updatedUser.fullName ||
+            currentPost.author.displayName,
+          avatar: updatedUser.avatar || currentPost.author.avatar,
+          avatarText: get_avatar_text(updatedUser),
+          isFollowed: Boolean(updatedUser.is_followed_by_current_user),
+        },
+      }));
+    } catch (error) {
+      console.error("Failed to follow user:", error.message);
+      window.alert(error.message);
+    } finally {
+      setIsFollowing(false);
     }
   }
 
@@ -432,8 +497,21 @@ function PostPage() {
             </Link>
 
             {!post.isOwnPost && (
-              <button type="button" className="post-modal-follow-button">
-                Follow
+              <button
+                type="button"
+                className={
+                  post.author.isFollowed
+                    ? "post-modal-follow-button post-modal-follow-button-active"
+                    : "post-modal-follow-button"
+                }
+                onClick={handleToggleFollow}
+                disabled={isFollowing}
+              >
+                {isFollowing
+                  ? "..."
+                  : post.author.isFollowed
+                    ? "Following"
+                    : "Follow"}
               </button>
             )}
 
