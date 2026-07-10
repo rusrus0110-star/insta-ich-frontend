@@ -74,6 +74,16 @@ export async function create_post(postData) {
   return data.post || data.data;
 }
 
+export async function get_all_posts() {
+  const data = await request("/api/posts");
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return data.posts || data.data || [];
+}
+
 export async function get_user_posts(userId) {
   const data = await request(`/api/posts/user/${userId}`);
 
