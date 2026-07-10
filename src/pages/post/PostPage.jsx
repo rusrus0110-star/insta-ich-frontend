@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Heart, MessageCircle, MoreHorizontal, Send, X } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal, X } from "lucide-react";
 
 import ProfilePage from "../profile/ProfilePage.jsx";
 
-import { get_post_by_id } from "../../services/post_api_service.js";
+import {
+  delete_post,
+  get_post_by_id,
+} from "../../services/post_api_service.js";
 
 import "../../styles/post.css";
 
@@ -125,6 +128,7 @@ function PostPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [completedPostId, setCompletedPostId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isPostLoaded = completedPostId === postId;
 
@@ -185,6 +189,7 @@ function PostPage() {
 
   function handleGoToPost() {
     setIsMenuOpen(false);
+    navigate(`/posts/${post.id}`);
   }
 
   function handleEditPost() {
@@ -192,9 +197,26 @@ function PostPage() {
     navigate(`/posts/${post.id}/edit`);
   }
 
-  function handleDeletePost() {
-    setIsMenuOpen(false);
-    console.log("Delete post will be connected to backend later:", post.id);
+  async function handleDeletePost() {
+    const shouldDelete = window.confirm("Delete this post?");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setIsMenuOpen(false);
+
+      await delete_post(post.id);
+
+      navigate(`/profile/${post.author.username}`);
+    } catch (error) {
+      console.error("Failed to delete post:", error.message);
+      window.alert(error.message);
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   async function handleCopyLink() {
@@ -202,8 +224,10 @@ function PostPage() {
 
     try {
       await navigator.clipboard.writeText(postUrl);
+      window.alert("Link copied.");
     } catch (error) {
       console.log("Copy link fallback:", postUrl, error);
+      window.alert(postUrl);
     }
 
     setIsMenuOpen(false);
@@ -216,6 +240,7 @@ function PostPage() {
 
         <section className="post-modal">
           <div className="post-modal-image-side" />
+
           <aside className="post-modal-content">
             <div className="post-modal-body">
               <p>Loading post...</p>
@@ -233,6 +258,7 @@ function PostPage() {
 
         <section className="post-modal">
           <div className="post-modal-image-side" />
+
           <aside className="post-modal-content">
             <header className="post-modal-header">
               <p>Post not found</p>
@@ -352,10 +378,6 @@ function PostPage() {
               <button type="button" aria-label="Comment post">
                 <MessageCircle size={22} strokeWidth={1.9} />
               </button>
-
-              <button type="button" aria-label="Share post">
-                <Send size={22} strokeWidth={1.9} />
-              </button>
             </div>
 
             <p className="post-modal-likes">{post.likes} likes</p>
@@ -376,8 +398,9 @@ function PostPage() {
               type="button"
               className="post-action-button post-action-button-danger"
               onClick={handleDeletePost}
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </button>
 
             <button
