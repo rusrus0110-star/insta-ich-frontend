@@ -89,3 +89,18 @@ export async function get_post_by_id(postId) {
 
   return data.post || data.data;
 }
+
+export async function update_post(postId, postData) {
+  const data = await request(`/api/posts/${postId}`, {
+    method: "PUT",
+    body: JSON.stringify(postData),
+  });
+
+  return data.post || data.data;
+}
+
+export async function delete_post(postId) {
+  return request(`/api/posts/${postId}`, {
+    method: "DELETE",
+  });
+}

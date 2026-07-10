@@ -114,6 +114,16 @@ function AppRouter() {
         }
       />
       <Route
+        path="/posts/:postId/edit"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <CreatePostPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/messages"
         element={
           <ProtectedRoute>

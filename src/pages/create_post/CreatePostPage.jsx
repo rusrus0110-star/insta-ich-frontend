@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Smile, UploadCloud, X } from "lucide-react";
 
 import ProfilePage from "../profile/ProfilePage.jsx";
 
 import { get_current_user_profile } from "../../services/user_api_service.js";
 import { upload_image } from "../../services/upload_api_service.js";
-import { create_post } from "../../services/post_api_service.js";
+import {
+  create_post,
+  get_post_by_id,
+  update_post,
+} from "../../services/post_api_service.js";
 
 import "../../styles/create_post.css";
 
@@ -25,20 +29,25 @@ function get_avatar_text(user) {
 
 function CreatePostPage() {
   const navigate = useNavigate();
+  const { postId } = useParams();
   const fileInputRef = useRef(null);
+
+  const isEditMode = Boolean(postId);
 
   const [currentUser, setCurrentUser] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [caption, setCaption] = useState("");
+  const [existingPost, setExistingPost] = useState(null);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(isEditMode);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     let isActive = true;
 
-    async function load_current_user() {
+    async function load_page_data() {
       try {
         const user = await get_current_user_profile();
 
@@ -47,23 +56,44 @@ function CreatePostPage() {
         }
 
         setCurrentUser(user);
+
+        if (isEditMode) {
+          const postData = await get_post_by_id(postId);
+
+          if (!isActive) {
+            return;
+          }
+
+          setExistingPost(postData);
+          setImagePreview(postData.image_url || postData.image || null);
+          setCaption(postData.caption || "");
+        }
       } catch (error) {
-        console.error("Failed to load current user:", error.message);
+        console.error("Failed to load create/edit post page:", error.message);
 
         if (isActive) {
           setErrorMessage(error.message);
         }
+      } finally {
+        if (isActive) {
+          setIsLoading(false);
+        }
       }
     }
 
-    load_current_user();
+    load_page_data();
 
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [isEditMode, postId]);
 
   function handleCloseCreatePost() {
+    if (isEditMode && postId) {
+      navigate(`/posts/${postId}`);
+      return;
+    }
+
     navigate(`/profile/${currentUser?.username || "ruslan"}`);
   }
 
@@ -101,7 +131,7 @@ function CreatePostPage() {
   }
 
   async function handleSharePost() {
-    if (!selectedFile) {
+    if (!imagePreview && !selectedFile) {
       setErrorMessage("Please select a photo before sharing the post.");
       return;
     }
@@ -110,22 +140,62 @@ function CreatePostPage() {
       setIsSaving(true);
       setErrorMessage("");
 
-      const uploadResult = await upload_image(selectedFile, "ichgram/posts");
+      let imageUrl = existingPost?.image_url || existingPost?.image || "";
+      let publicId = existingPost?.public_id || "";
 
-      await create_post({
-        image: uploadResult.image_url,
-        image_url: uploadResult.image_url,
-        public_id: uploadResult.public_id,
+      if (selectedFile) {
+        const uploadResult = await upload_image(selectedFile, "ichgram/posts");
+
+        imageUrl = uploadResult.image_url;
+        publicId = uploadResult.public_id;
+      }
+
+      if (isEditMode) {
+        const updatedPost = await update_post(postId, {
+          image: imageUrl,
+          image_url: imageUrl,
+          public_id: publicId,
+          caption: caption.trim(),
+        });
+
+        navigate(`/posts/${updatedPost.id || updatedPost._id || postId}`);
+        return;
+      }
+
+      const createdPost = await create_post({
+        image: imageUrl,
+        image_url: imageUrl,
+        public_id: publicId,
         caption: caption.trim(),
       });
 
-      navigate(`/profile/${currentUser?.username || "ruslan"}`);
+      navigate(`/posts/${createdPost.id || createdPost._id}`);
     } catch (error) {
-      console.error("Failed to create post:", error.message);
+      console.error("Failed to save post:", error.message);
       setErrorMessage(error.message);
     } finally {
       setIsSaving(false);
     }
+  }
+
+  if (isLoading) {
+    return (
+      <main className="create-post-page">
+        <div className="create-post-dark-overlay" />
+
+        <section className="create-post-modal">
+          <header className="create-post-header">
+            <h1>{isEditMode ? "Edit post" : "Create new post"}</h1>
+          </header>
+
+          <div className="create-post-content">
+            <section className="create-post-upload-area">
+              <p>Loading post...</p>
+            </section>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -138,7 +208,7 @@ function CreatePostPage() {
 
       <section className="create-post-modal">
         <header className="create-post-header">
-          <h1>Create new post</h1>
+          <h1>{isEditMode ? "Edit post" : "Create new post"}</h1>
 
           <button
             type="button"
@@ -146,7 +216,7 @@ function CreatePostPage() {
             onClick={handleSharePost}
             disabled={isSaving}
           >
-            {isSaving ? "Sharing..." : "Share"}
+            {isSaving ? "Saving..." : isEditMode ? "Save" : "Share"}
           </button>
 
           <button
@@ -172,7 +242,7 @@ function CreatePostPage() {
             {imagePreview ? (
               <img
                 src={imagePreview}
-                alt="New post preview"
+                alt="Post preview"
                 className="create-post-preview-image"
               />
             ) : (
