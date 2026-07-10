@@ -5,8 +5,12 @@ import { Heart, MessageCircle, MoreHorizontal, X } from "lucide-react";
 import ProfilePage from "../profile/ProfilePage.jsx";
 
 import {
+  create_post_comment,
   delete_post,
+  delete_post_comment,
   get_post_by_id,
+  get_post_comments,
+  toggle_post_like,
 } from "../../services/post_api_service.js";
 
 import "../../styles/post.css";
@@ -32,7 +36,7 @@ function get_current_user() {
 }
 
 function get_avatar_text(user) {
-  const source = user?.username || user?.full_name || "U";
+  const source = user?.username || user?.full_name || user?.displayName || "U";
 
   return source
     .split(/[\s._-]+/)
@@ -77,9 +81,21 @@ function format_time(value) {
   });
 }
 
+function normalize_author(author) {
+  const authorId = author?.id || author?._id;
+
+  return {
+    id: authorId,
+    username: author?.username || "unknown",
+    displayName:
+      author?.full_name || author?.fullName || author?.username || "Unknown",
+    avatar: author?.avatar || "",
+    avatarText: get_avatar_text(author),
+  };
+}
+
 function normalize_post(post, currentUser) {
-  const author = post.author || {};
-  const authorId = author.id || author._id;
+  const author = normalize_author(post.author || {});
 
   return {
     id: post.id || post._id,
@@ -91,15 +107,20 @@ function normalize_post(post, currentUser) {
     time: format_time(post.created_at || post.createdAt),
     createdAt: post.created_at || post.createdAt,
     isOwnPost:
-      String(authorId) === String(currentUser?.id) ||
+      String(author.id) === String(currentUser?.id) ||
       author.username === currentUser?.username,
-    author: {
-      id: authorId,
-      username: author.username || "unknown",
-      displayName: author.full_name || author.fullName || author.username,
-      avatar: author.avatar || "",
-      avatarText: get_avatar_text(author),
-    },
+    author,
+  };
+}
+
+function normalize_comment(comment) {
+  const author = normalize_author(comment.author || comment.user || {});
+
+  return {
+    id: comment.id || comment._id,
+    text: comment.text || comment.content || "",
+    time: format_time(comment.created_at || comment.createdAt),
+    author,
   };
 }
 
@@ -125,10 +146,15 @@ function PostPage() {
   const currentUser = useMemo(() => get_current_user(), []);
 
   const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [completedPostId, setCompletedPostId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLiking, setIsLiking] = useState(false);
+  const [isCommenting, setIsCommenting] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState("");
 
   const isPostLoaded = completedPostId === postId;
 
@@ -141,13 +167,17 @@ function PostPage() {
 
     async function load_post() {
       try {
-        const postData = await get_post_by_id(postId);
+        const [postData, commentsData] = await Promise.all([
+          get_post_by_id(postId),
+          get_post_comments(postId),
+        ]);
 
         if (!isActive) {
           return;
         }
 
         setPost(normalize_post(postData, currentUser));
+        setComments(commentsData.map(normalize_comment));
         setErrorMessage("");
         setCompletedPostId(postId);
       } catch (error) {
@@ -158,6 +188,7 @@ function PostPage() {
         }
 
         setPost(null);
+        setComments([]);
         setErrorMessage(error.message);
         setCompletedPostId(postId);
       }
@@ -231,6 +262,93 @@ function PostPage() {
     }
 
     setIsMenuOpen(false);
+  }
+
+  async function handleLikePost() {
+    if (!post?.id || isLiking) {
+      return;
+    }
+
+    try {
+      setIsLiking(true);
+
+      const updatedPost = await toggle_post_like(post.id);
+
+      setPost(normalize_post(updatedPost, currentUser));
+    } catch (error) {
+      console.error("Failed to like post:", error.message);
+      window.alert(error.message);
+    } finally {
+      setIsLiking(false);
+    }
+  }
+
+  function handleCommentTextChange(event) {
+    setCommentText(event.target.value);
+  }
+
+  async function handleSubmitComment(event) {
+    event.preventDefault();
+
+    const normalizedCommentText = commentText.trim();
+
+    if (!normalizedCommentText || !post?.id || isCommenting) {
+      return;
+    }
+
+    try {
+      setIsCommenting(true);
+
+      const createdComment = await create_post_comment(
+        post.id,
+        normalizedCommentText,
+      );
+
+      setComments((currentComments) => [
+        normalize_comment(createdComment),
+        ...currentComments,
+      ]);
+
+      setPost((currentPost) => ({
+        ...currentPost,
+        commentsCount: currentPost.commentsCount + 1,
+      }));
+
+      setCommentText("");
+    } catch (error) {
+      console.error("Failed to create comment:", error.message);
+      window.alert(error.message);
+    } finally {
+      setIsCommenting(false);
+    }
+  }
+
+  async function handleDeleteComment(commentId) {
+    const shouldDelete = window.confirm("Delete this comment?");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      setDeletingCommentId(commentId);
+
+      await delete_post_comment(commentId);
+
+      setComments((currentComments) =>
+        currentComments.filter((comment) => comment.id !== commentId),
+      );
+
+      setPost((currentPost) => ({
+        ...currentPost,
+        commentsCount: Math.max(currentPost.commentsCount - 1, 0),
+      }));
+    } catch (error) {
+      console.error("Failed to delete comment:", error.message);
+      window.alert(error.message);
+    } finally {
+      setDeletingCommentId("");
+    }
   }
 
   if (!isPostLoaded) {
@@ -361,21 +479,80 @@ function PostPage() {
             </article>
 
             <div className="post-modal-comments">
-              {post.commentsCount > 0 ? (
-                <p>{post.commentsCount} comments</p>
+              {comments.length > 0 ? (
+                comments.map((comment) => {
+                  const canDeleteComment =
+                    String(comment.author.id) === String(currentUser?.id) ||
+                    post.isOwnPost;
+
+                  return (
+                    <article key={comment.id} className="post-modal-comment">
+                      <Link
+                        to={`/profile/${comment.author.username}`}
+                        className="post-modal-comment-avatar"
+                      >
+                        <PostAvatar user={comment.author} />
+                      </Link>
+
+                      <div>
+                        <p>
+                          <Link to={`/profile/${comment.author.username}`}>
+                            {comment.author.username}
+                          </Link>{" "}
+                          {comment.text}
+                        </p>
+
+                        <div className="post-modal-comment-meta">
+                          {comment.time && <span>{comment.time}</span>}
+
+                          {canDeleteComment && (
+                            <button
+                              type="button"
+                              className="post-modal-comment-delete-button"
+                              onClick={() => handleDeleteComment(comment.id)}
+                              disabled={deletingCommentId === comment.id}
+                            >
+                              {deletingCommentId === comment.id
+                                ? "Deleting..."
+                                : "Delete"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })
               ) : (
-                <p>No comments yet.</p>
+                <p className="post-modal-empty-comments">No comments yet.</p>
               )}
             </div>
           </div>
 
           <footer className="post-modal-footer">
             <div className="post-modal-actions">
-              <button type="button" aria-label="Like post">
-                <Heart size={22} strokeWidth={1.9} />
+              <button
+                type="button"
+                aria-label="Like post"
+                onClick={handleLikePost}
+                disabled={isLiking}
+                className={post.isLiked ? "post-modal-action-liked" : ""}
+              >
+                <Heart
+                  size={22}
+                  strokeWidth={1.9}
+                  fill={post.isLiked ? "currentColor" : "none"}
+                />
               </button>
 
-              <button type="button" aria-label="Comment post">
+              <button
+                type="button"
+                aria-label="Comment post"
+                onClick={() =>
+                  document
+                    .querySelector(".post-modal-comment-form input")
+                    ?.focus()
+                }
+              >
                 <MessageCircle size={22} strokeWidth={1.9} />
               </button>
             </div>
@@ -383,9 +560,24 @@ function PostPage() {
             <p className="post-modal-likes">{post.likes} likes</p>
             <p className="post-modal-time">{post.time}</p>
 
-            <form className="post-modal-comment-form">
-              <input type="text" placeholder="Add comment..." />
-              <button type="submit">Send</button>
+            <form
+              className="post-modal-comment-form"
+              onSubmit={handleSubmitComment}
+            >
+              <input
+                type="text"
+                placeholder="Add comment..."
+                value={commentText}
+                onChange={handleCommentTextChange}
+                disabled={isCommenting}
+              />
+
+              <button
+                type="submit"
+                disabled={!commentText.trim() || isCommenting}
+              >
+                {isCommenting ? "Sending..." : "Send"}
+              </button>
             </form>
           </footer>
         </aside>

@@ -428,6 +428,69 @@
   cursor: not-allowed;
 }
 
+.post-modal-action-liked {
+  color: #ed4956 !important;
+}
+
+.post-modal-empty-comments {
+  margin: 0;
+  color: #8e8e8e;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.post-modal-comment div {
+  min-width: 0;
+}
+
+.post-modal-comment span {
+  display: block;
+  margin-top: 4px;
+  color: #8e8e8e;
+  font-size: 10px;
+  line-height: 12px;
+}
+
+.post-modal-actions button:disabled,
+.post-modal-comment-form button:disabled,
+.post-modal-comment-form input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.post-modal-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.post-modal-comment-meta span {
+  display: block;
+  color: #8e8e8e;
+  font-size: 10px;
+  line-height: 12px;
+}
+
+.post-modal-comment-delete-button {
+  border: none;
+  background: transparent;
+  color: #8e8e8e;
+  padding: 0;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.post-modal-comment-delete-button:hover {
+  background: transparent;
+  color: #ed4956;
+}
+
+.post-modal-comment-delete-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
 /* Post responsive */
 
 @media (max-width: 1180px) {
