@@ -104,3 +104,38 @@ export async function delete_post(postId) {
     method: "DELETE",
   });
 }
+
+export async function toggle_post_like(postId) {
+  const data = await request(`/api/posts/${postId}/like`, {
+    method: "POST",
+  });
+
+  return data.post || data.data;
+}
+
+export async function get_post_comments(postId) {
+  const data = await request(`/api/posts/${postId}/comments`);
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return data.comments || data.data || [];
+}
+
+export async function create_post_comment(postId, text) {
+  const data = await request(`/api/posts/${postId}/comments`, {
+    method: "POST",
+    body: JSON.stringify({
+      text,
+    }),
+  });
+
+  return data.comment || data.data;
+}
+
+export async function delete_post_comment(commentId) {
+  return request(`/api/comments/${commentId}`, {
+    method: "DELETE",
+  });
+}
