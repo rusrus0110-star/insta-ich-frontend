@@ -1,92 +1,220 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import explore1 from "../../assets/explore-1.png";
-import explore2 from "../../assets/explore-2.png";
-import explore3 from "../../assets/explore-3.png";
-import explore4 from "../../assets/explore-4.png";
-import explore5 from "../../assets/explore-5.png";
-import explore6 from "../../assets/explore-6.png";
-import explore7 from "../../assets/explore-7.png";
-import explore8 from "../../assets/explore-8.png";
-import explore9 from "../../assets/explore-9.png";
-import explore10 from "../../assets/explore-10.png";
 
-const exploreItems = [
-  {
-    id: 1,
-    username: "sashaa",
-    image: explore1,
-    alt: "Explore post 1",
-  },
-  {
-    id: 2,
-    username: "marina",
-    image: explore2,
-    alt: "Explore post 2",
-  },
-  {
-    id: 3,
-    username: "alex",
-    image: explore3,
-    alt: "Explore post 3",
-    tall: true,
-  },
-  {
-    id: 4,
-    username: "natalia",
-    image: explore4,
-    alt: "Explore post 4",
-  },
-  {
-    id: 5,
-    username: "egor",
-    image: explore5,
-    alt: "Explore post 5",
-  },
-  {
-    id: 6,
-    username: "david",
-    image: explore6,
-    alt: "Explore post 6",
-    tall: true,
-  },
-  {
-    id: 7,
-    username: "anna",
-    image: explore7,
-    alt: "Explore post 7",
-  },
-  {
-    id: 8,
-    username: "max",
-    image: explore8,
-    alt: "Explore post 8",
-  },
-  {
-    id: 9,
-    username: "lena",
-    image: explore9,
-    alt: "Explore post 9",
-  },
-  {
-    id: 10,
-    username: "roman",
-    image: explore10,
-    alt: "Explore post 10",
-  },
-];
+import { get_all_posts } from "../../services/post_api_service.js";
+
+import "../../styles/explore.css";
+
+function normalize_post(post) {
+  const author = post.author || {};
+
+  return {
+    id: String(post.id || post._id || "").trim(),
+    image: post.image_url || post.image || "",
+    publicId: post.public_id || post.publicId || "",
+    caption: post.caption || "",
+    authorUsername: author.username || "unknown",
+    likesCount: post.likes_count || post.likesCount || 0,
+    commentsCount: post.comments_count || post.commentsCount || 0,
+  };
+}
+
+function get_clean_image_key(imageUrl) {
+  if (!imageUrl) {
+    return "";
+  }
+
+  let cleanUrl = String(imageUrl).trim().toLowerCase();
+
+  cleanUrl = cleanUrl.split("?")[0];
+
+  if (cleanUrl.includes("/upload/")) {
+    const afterUpload = cleanUrl.split("/upload/")[1] || "";
+
+    const withoutVersion = afterUpload.replace(/^v\d+\//, "");
+
+    return withoutVersion.replace(/\.[a-z0-9]+$/, "");
+  }
+
+  return cleanUrl.replace(/\.[a-z0-9]+$/, "");
+}
+
+function get_duplicate_key(post) {
+  const publicId = String(post.publicId || "")
+    .trim()
+    .toLowerCase();
+  const imageKey = get_clean_image_key(post.image);
+
+  if (publicId) {
+    return `public_id:${publicId}`;
+  }
+
+  if (imageKey) {
+    return `image:${imageKey}`;
+  }
+
+  return `post:${post.id}`;
+}
+
+function remove_duplicate_posts(posts) {
+  const seenPostIds = new Set();
+  const seenDuplicateKeys = new Set();
+  const uniquePosts = [];
+
+  posts.forEach((post) => {
+    const postId = String(post.id || "").trim();
+    const duplicateKey = get_duplicate_key(post);
+
+    if (!postId || !post.image) {
+      return;
+    }
+
+    if (seenPostIds.has(postId)) {
+      return;
+    }
+
+    if (seenDuplicateKeys.has(duplicateKey)) {
+      return;
+    }
+
+    seenPostIds.add(postId);
+    seenDuplicateKeys.add(duplicateKey);
+    uniquePosts.push(post);
+  });
+
+  return uniquePosts;
+}
+
+function shuffle_posts(posts) {
+  const shuffledPosts = [...posts];
+
+  for (let index = shuffledPosts.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+
+    [shuffledPosts[index], shuffledPosts[randomIndex]] = [
+      shuffledPosts[randomIndex],
+      shuffledPosts[index],
+    ];
+  }
+
+  return shuffledPosts;
+}
+
+function is_tall_explore_item(index) {
+  const positionInBlock = index % 10;
+
+  return positionInBlock === 2 || positionInBlock === 5;
+}
 
 function ExplorePage() {
+  const [posts, setPosts] = useState([]);
+  const [completedLoading, setCompletedLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function load_posts() {
+      try {
+        const postsData = await get_all_posts();
+
+        if (!isActive) {
+          return;
+        }
+
+        const normalizedPosts = postsData
+          .map(normalize_post)
+          .filter((post) => post.id && post.image);
+
+        const uniquePosts = remove_duplicate_posts(normalizedPosts);
+        const randomizedPosts = shuffle_posts(uniquePosts);
+
+        console.table(
+          randomizedPosts.map((post) => ({
+            id: post.id,
+            username: post.authorUsername,
+            duplicateKey: get_duplicate_key(post),
+            image: post.image,
+          })),
+        );
+
+        setPosts(randomizedPosts);
+        setErrorMessage("");
+      } catch (error) {
+        console.error("Failed to load explore posts:", error.message);
+
+        if (isActive) {
+          setPosts([]);
+          setErrorMessage(error.message);
+        }
+      } finally {
+        if (isActive) {
+          setCompletedLoading(true);
+        }
+      }
+    }
+
+    load_posts();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  if (!completedLoading) {
+    return (
+      <main className="explore-page">
+        <section className="explore-state-box">
+          <p>Loading explore posts...</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <main className="explore-page">
+        <section className="explore-state-box">
+          <h1>Explore is unavailable</h1>
+          <p>{errorMessage}</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <main className="explore-page">
+        <section className="explore-state-box">
+          <h1>No posts yet</h1>
+          <p>Create a few posts first, then they will appear here.</p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="explore-page">
       <section className="explore-grid" aria-label="Explore posts">
-        {exploreItems.map((item) => (
+        {posts.map((post, index) => (
           <Link
-            key={item.id}
-            to={`/profile/${item.username}`}
-            className={`explore-item ${item.tall ? "explore-item-tall" : ""}`}
-            aria-label={`Open ${item.username} profile`}
+            key={`${post.id}-${get_duplicate_key(post)}`}
+            to={`/posts/${post.id}`}
+            className={
+              is_tall_explore_item(index)
+                ? "explore-item explore-item-tall"
+                : "explore-item"
+            }
+            aria-label={`Open post by ${post.authorUsername}`}
           >
-            <img src={item.image} alt={item.alt} />
+            <img src={post.image} alt={post.caption || "Explore post"} />
+
+            <span className="explore-item-overlay">
+              <span>{post.authorUsername}</span>
+              <small>
+                {post.likesCount} likes · {post.commentsCount} comments
+              </small>
+            </span>
           </Link>
         ))}
       </section>
