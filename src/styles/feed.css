@@ -38,19 +38,36 @@
   gap: 8px;
 }
 
-.post-avatar-fallback {
-  width: 26.56px;
-  height: 27.56px;
+.post-avatar {
+  width: 27px;
+  height: 27px;
   border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   background: #efefef;
   color: #262626;
   font-size: 12px;
   font-weight: 600;
   line-height: 1;
   flex-shrink: 0;
+}
+
+.post-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+.post-avatar span {
+  width: 100%;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .post-header-meta {
@@ -62,10 +79,21 @@
 
 .post-username {
   display: inline-block;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #262626;
   font-size: 11px;
   line-height: 15.5px;
   font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.post-username:hover {
+  background: transparent;
   color: #262626;
+  text-decoration: none;
 }
 
 .post-meta-separator {
@@ -83,33 +111,19 @@
   color: #8e8e8e;
 }
 
-.post-follow-button {
-  width: auto;
-  min-width: auto;
-  height: 15.5px;
-  margin-left: 18px;
-  border: none;
-  background: transparent;
+.post-image-button {
+  width: 403.82px;
+  height: 505.59px;
+  display: block;
+  overflow: hidden;
+  border: 0.86px solid #efefef;
+  background: #fafafa;
   padding: 0;
-  color: #0095f6;
-  font-size: 11px;
-  line-height: 15.5px;
-  font-weight: 600;
-  text-transform: lowercase;
   cursor: pointer;
 }
 
-.post-follow-button:hover {
-  background: transparent;
-  color: #1877f2;
-}
-
-.post-image-wrap {
-  width: 403.82px;
-  height: 505.59px;
-  overflow: hidden;
+.post-image-button:hover {
   background: #fafafa;
-  border: 0.86px solid #efefef;
 }
 
 .post-image {
@@ -158,6 +172,15 @@
   opacity: 0.75;
 }
 
+.post-action-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.post-action-liked {
+  color: #ed4956;
+}
+
 .post-action-icon {
   width: 20px;
   height: 20px;
@@ -180,42 +203,18 @@
 }
 
 .post-caption-author {
+  color: #262626;
   font-weight: 600;
+  text-decoration: none;
+}
+
+.post-caption-author:hover {
+  color: #262626;
+  text-decoration: none;
 }
 
 .post-caption-text {
   font-weight: 400;
-}
-
-.post-preview {
-  margin: 0 0 4px;
-  font-size: 12px;
-  line-height: 16px;
-  color: #262626;
-}
-
-.post-preview-text {
-  color: #262626;
-}
-
-.post-preview-separator {
-  color: #8e8e8e;
-}
-
-.post-more-button {
-  border: none;
-  background: transparent;
-  padding: 0;
-  color: #8e8e8e;
-  font-size: 12px;
-  line-height: 16px;
-  font-weight: 400;
-  cursor: pointer;
-}
-
-.post-more-button:hover {
-  background: transparent;
-  color: #737373;
 }
 
 .post-comments-button {
@@ -232,6 +231,84 @@
 .post-comments-button:hover {
   background: transparent;
   color: #737373;
+}
+
+.post-comment-form {
+  width: 100%;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  border-top: 1px solid #efefef;
+  padding-top: 8px;
+}
+
+.post-comment-form input {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #262626;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.post-comment-form input::placeholder {
+  color: #8e8e8e;
+}
+
+.post-comment-form button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #0095f6;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.post-comment-form button:hover {
+  background: transparent;
+  color: #1877f2;
+}
+
+.post-comment-form button:disabled,
+.post-comment-form input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Feed states */
+
+.feed-state-box {
+  width: min(856px, calc(100% - 48px));
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  margin: 0 auto;
+  color: #8e8e8e;
+  text-align: center;
+}
+
+.feed-state-box h1 {
+  margin: 0;
+  color: #262626;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.feed-state-box p {
+  margin: 0;
+  color: #8e8e8e;
+  font-size: 13px;
+  line-height: 18px;
 }
 
 /* Feed updates */
@@ -303,11 +380,11 @@
   .post-card,
   .post-header,
   .post-content,
-  .post-image-wrap {
+  .post-image-button {
     width: 100%;
   }
 
-  .post-image-wrap {
+  .post-image-button {
     height: auto;
     aspect-ratio: 403.82 / 505.59;
   }
