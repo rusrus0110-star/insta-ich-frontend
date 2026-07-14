@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Heart, MessageCircle, MoreHorizontal, X } from "lucide-react";
 
@@ -14,31 +14,12 @@ import {
 } from "../../services/post_api_service.js";
 
 import {
+  get_current_user_profile,
   get_user_profile_by_username,
   toggle_follow_user,
 } from "../../services/user_api_service.js";
 
 import "../../styles/post.css";
-
-function get_current_user() {
-  const userData = localStorage.getItem("user");
-
-  if (!userData) {
-    return null;
-  }
-
-  try {
-    const parsedUserData = JSON.parse(userData);
-    const user = parsedUserData.user || parsedUserData;
-
-    return {
-      id: user.id || user._id || user.user_id,
-      username: user.username,
-    };
-  } catch {
-    return null;
-  }
-}
 
 function get_avatar_text(user) {
   const source = user?.username || user?.full_name || user?.displayName || "U";
@@ -150,8 +131,8 @@ function PostAvatar({ user }) {
 function PostPage() {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const currentUser = useMemo(() => get_current_user(), []);
 
+  const [currentUser, setCurrentUser] = useState(null);
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
@@ -175,21 +156,29 @@ function PostPage() {
 
     async function load_post() {
       try {
-        const [postData, commentsData] = await Promise.all([
+        const [currentUserData, postData, commentsData] = await Promise.all([
+          get_current_user_profile(),
           get_post_by_id(postId),
           get_post_comments(postId),
         ]);
+
+        const normalizedCurrentUser = {
+          id: currentUserData?.id || currentUserData?._id,
+          username: currentUserData?.username || "",
+        };
 
         if (!isActive) {
           return;
         }
 
-        const basePost = normalize_post(postData, currentUser);
+        setCurrentUser(normalizedCurrentUser);
+
+        const basePost = normalize_post(postData, normalizedCurrentUser);
         let authorProfile = null;
 
         if (
           basePost.author.username &&
-          basePost.author.username !== currentUser?.username
+          basePost.author.username !== normalizedCurrentUser.username
         ) {
           authorProfile = await get_user_profile_by_username(
             basePost.author.username,
@@ -200,7 +189,8 @@ function PostPage() {
           return;
         }
 
-        setPost(normalize_post(postData, currentUser, authorProfile));
+        setPost(normalize_post(postData, normalizedCurrentUser, authorProfile));
+
         setComments(commentsData.map(normalize_comment));
         setErrorMessage("");
         setCompletedPostId(postId);
@@ -223,7 +213,7 @@ function PostPage() {
     return () => {
       isActive = false;
     };
-  }, [postId, currentUser]);
+  }, [postId]);
 
   function handleClosePost() {
     if (post?.author?.username) {
@@ -316,7 +306,7 @@ function PostPage() {
   }
 
   async function handleToggleFollow() {
-    if (!post?.author?.id || isFollowing) {
+    if (!post?.author?.id || isFollowing || post.isOwnPost) {
       return;
     }
 
@@ -496,7 +486,7 @@ function PostPage() {
               </div>
             </Link>
 
-            {!post.isOwnPost && (
+            {!post.isOwnPost ? (
               <button
                 type="button"
                 className={
@@ -513,9 +503,7 @@ function PostPage() {
                     ? "Following"
                     : "Follow"}
               </button>
-            )}
-
-            {post.isOwnPost && (
+            ) : (
               <button
                 type="button"
                 className="post-modal-menu-button"
@@ -552,6 +540,7 @@ function PostPage() {
                   </Link>{" "}
                   {post.caption}
                 </p>
+
                 <span>{post.time}</span>
               </div>
             </article>
