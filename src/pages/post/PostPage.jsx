@@ -190,7 +190,6 @@ function PostPage() {
         }
 
         setPost(normalize_post(postData, normalizedCurrentUser, authorProfile));
-
         setComments(commentsData.map(normalize_comment));
         setErrorMessage("");
         setCompletedPostId(postId);
@@ -651,11 +650,11 @@ function PostPage() {
       </section>
 
       {isMenuOpen && post.isOwnPost && (
-        <div className="post-action-layer">
-          <div className="post-action-dialog" role="dialog" aria-modal="true">
+        <div className="post-options-layer">
+          <div className="post-options-dialog" role="dialog" aria-modal="true">
             <button
               type="button"
-              className="post-action-button post-action-button-danger"
+              className="post-options-button post-options-button-danger"
               onClick={handleDeletePost}
               disabled={isDeleting}
             >
@@ -664,7 +663,7 @@ function PostPage() {
 
             <button
               type="button"
-              className="post-action-button"
+              className="post-options-button"
               onClick={handleEditPost}
             >
               Edit
@@ -672,7 +671,7 @@ function PostPage() {
 
             <button
               type="button"
-              className="post-action-button"
+              className="post-options-button"
               onClick={handleGoToPost}
             >
               Go to post
@@ -680,7 +679,7 @@ function PostPage() {
 
             <button
               type="button"
-              className="post-action-button"
+              className="post-options-button"
               onClick={handleCopyLink}
             >
               Copy link
@@ -688,7 +687,7 @@ function PostPage() {
 
             <button
               type="button"
-              className="post-action-button"
+              className="post-options-button"
               onClick={handleCloseMenu}
             >
               Cancel
